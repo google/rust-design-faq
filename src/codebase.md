@@ -195,3 +195,46 @@ Well, maybe. But you might choose an arena anyway for other reasons:
 * The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (`\`arena` for example), making the provenance of those references very clear.
 * All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. [Bumpalo](https://docs.rs/bumpalo/3.6.1/bumpalo/) formalizes this.
 
+## I'm having a miserable time making my data structure due to the borrow checker.
+
+C++ makes it hard to pull in third-party dependencies, but this is normal in
+Rust. A typical Rust project will depend on at least 5-10 other crates, which in
+turn will pull in lots of transitive dependencies.
+
+The ability to use other people's data structures goes hand-in-hand with the
+difficulty of creating your own. These two features of the Rust language have
+co-evolved.
+
+And so: if you're writing a data structure, you've probably made poor life
+choices in the first place. You should be using somebody else's tried-and-tested
+data structure. [petgraph](https://docs.rs/petgraph) and
+[slotmap](https://docs.rs/slotmap) are great examples. Use someone else's crate
+by default, and resort to writing your own only if you exhaust that option.
+
+You might argue that this dependency on third-party crates is concerning
+from a supply-chain security point of view. Your author would agree, but
+it's just the way you do things in Rust. Stop creating your own data structures.
+
+## Should I have a few big crates or lots of small ones?
+
+In the past, it was recommended to have small crates to get optimal build time.
+Incremental builds generally make this unnecessary now. You should arrange your
+crates optimally for your semantic needs.
+
+## What crates should everyone know about?
+
+* [rayon](https://docs.rs/rayon/) - for parallelizing
+* [serde](https://docs.rs/serde/) - for serializing and deserializing
+* [crossbeam](https://docs.rs/crossbeam/) - for all sorts of parallelism tools
+* [itertools](https://docs.rs/itertools/) - for making it slightly more pleasant
+  to work with iterators. (For instance, if you want to join an iterator of
+  strings, you can just go ahead and do that, without needing to collect the
+  strings into a `Vec` first)
+* [petgraph](https://docs.rs/petgraph/) - for graph data structures
+* [slotmap](https://docs.rs/slotmap/) - arena-like
+* [nom](https://docs.rs/nom/) - parsing
+* [clap](https://docs.rs/clap/) - command-line parsing
+* [regex](https://docs.rs/regex/) - err, regular expressions
+* [ring](https://docs.rs/ring/) - the leading crypto library.
+* [nalgebra](https://docs.rs/nalgebra/) - linear algebra
+* [once_cell](https://docs.rs/once_cell/) - for complex static data
