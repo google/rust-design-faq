@@ -1,0 +1,6 @@
+[book]
+authors = ["Adrian Taylor"]
+language = "en"
+multilingual = false
+src = "src"
+title = "faqs.rs"
