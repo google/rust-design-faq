@@ -90,6 +90,7 @@ The obvious advantage of the third approach is that it's more concise, but less 
 * The first solution may require Rust to do array bounds checks inside each iteration of the loop, making Rust potentially slower than C++. In this sort of simple example, it likely wouldn't, but functional pipelines simply don't require bounds checks.
 * The final container (a `HashSet` in this case) may be able to allocate roughly the right size at the outset, using the [size_hint](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.size_hint) of a Rust iterator.
 * Rust may be better able to [auto-vectorize code to use SIMD instructions](https://www.minimalrust.com/an-adventure-in-simd/).
+* There is no mutable state within the function. This makes it easier to verify that the code is correct and to avoid introducing bugs when changing it. In this simple example it may be obvious that calling the `HashSet::insert` is the only mutation to the set, but in more complex scenarios it is quite easy to lose the overview.
 * And as a new arrival from C++, you may find this hard to believe... but for an experienced Rustacean it'll be more readable.
 
 There are other cases where in C++ you might materialize a collection, whereas in Rust you just don't need to:
