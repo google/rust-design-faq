@@ -6,17 +6,17 @@ The C++ observer pattern usually means:
 
 ```mermaid
 flowchart TB
-	broadcaster_a[Broadcaster A]
-	broadcaster_b[Broadcaster B]
-	consumer_a[Consumer A]
-	consumer_b[Consumer B]
-	consumer_c[Consumer C]
-	broadcaster_a --> consumer_a
-	broadcaster_b --> consumer_a
-	broadcaster_a --> consumer_b
-	broadcaster_b --> consumer_b
-	broadcaster_a --> consumer_c
-	broadcaster_b --> consumer_c
+    broadcaster_a[Broadcaster A]
+    broadcaster_b[Broadcaster B]
+    consumer_a[Consumer A]
+    consumer_b[Consumer B]
+    consumer_c[Consumer C]
+    broadcaster_a --> consumer_a
+    broadcaster_b --> consumer_a
+    broadcaster_a --> consumer_b
+    broadcaster_b --> consumer_b
+    broadcaster_a --> consumer_c
+    broadcaster_b --> consumer_c
 ```
 
 where the broadcasters maintain lists of the consumers, and the consumers act in response to messages (often mutating their own state.)
@@ -49,9 +49,9 @@ In C++, it's common to have all behavior within classes. Those classes _are_ the
 
 ```mermaid
 flowchart TB
-	broadcaster_a[Broadcaster A]
-	consumer_a[Consumer A]
-	consumer_b[Consumer B]
+    broadcaster_a[Broadcaster A]
+    consumer_a[Consumer A]
+    consumer_b[Consumer B]
     broadcaster_a -- observer --> consumer_a
     broadcaster_a -- observer --> consumer_b
 ```
@@ -61,9 +61,9 @@ In Rust, it's more common to have some _external_ function which drives overall 
 ```mermaid
 flowchart TB
     main(Main)
-	broadcaster_a[Broadcaster A]
-	consumer_a[Consumer A]
-	consumer_b[Consumer B]
+    broadcaster_a[Broadcaster A]
+    consumer_a[Consumer A]
+    consumer_b[Consumer B]
     main --1--> broadcaster_a
     broadcaster_a --2--> main
     main --3--> consumer_a

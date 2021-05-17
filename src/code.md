@@ -13,13 +13,13 @@ For instance, suppose you need to work out what food to get at the petshop. Here
 ```rust
 {{#include pets.rs}}
 fn make_shopping_list_a() -> HashSet<&'static str> {
-	let mut meals_needed = HashSet::new();
-	for n in 0..PETS.len() { // ugh
-		if PETS[n].is_hungry {
-			meals_needed.insert(PETS[n].meal_needed);
-		}
-	}
-	meals_needed
+    let mut meals_needed = HashSet::new();
+    for n in 0..PETS.len() { // ugh
+        if PETS[n].is_hungry {
+            meals_needed.insert(PETS[n].meal_needed);
+        }
+    }
+    meals_needed
 }
 ```
 
@@ -28,13 +28,13 @@ The loop index is verbose and error-prone. Let's get rid of it and loop over an 
 ```rust
 {{#include pets.rs}}
 fn make_shopping_list_b() -> HashSet<&'static str>  {
-	let mut meals_needed = HashSet::new();
-	for animal in PETS.iter() { // better...
-		if animal.is_hungry {
-			meals_needed.insert(animal.meal_needed);
-		}
-	}
-	meals_needed
+    let mut meals_needed = HashSet::new();
+    for animal in PETS.iter() { // better...
+        if animal.is_hungry {
+            meals_needed.insert(animal.meal_needed);
+        }
+    }
+    meals_needed
 }
 ```
 
@@ -43,10 +43,10 @@ We're accessing the loop through an iterator, but we're still processing the ele
 ```rust
 {{#include pets.rs}}
 fn make_shopping_list_c() -> HashSet<&'static str> {
-	PETS.iter()
-		.filter(|animal| animal.is_hungry)
-		.map(|animal| animal.meal_needed)
-		.collect() // best...
+    PETS.iter()
+        .filter(|animal| animal.is_hungry)
+        .map(|animal| animal.meal_needed)
+        .collect() // best...
 }
 ```
 
@@ -67,47 +67,47 @@ There are other cases where in C++ you might materialize a collection, whereas i
   ```rust
   # use std::collections::HashSet;
   # struct Animal {
-  # 	kind: &'static str,
-  # 	is_hungry: bool,
-  # 	meal_needed: &'static str,
+  #     kind: &'static str,
+  #     is_hungry: bool,
+  #     meal_needed: &'static str,
   # }
   # static PETS: [Animal; 0] = [];
-  #  static NEARBY_DUCK: Animal = 	Animal {
-  # 		kind: "Duck",
-  # 		is_hungry: true,
-  # 		meal_needed: "pondweed",
-  # 	};
+  #  static NEARBY_DUCK: Animal = Animal {
+  #         kind: "Duck",
+  #         is_hungry: true,
+  #         meal_needed: "pondweed",
+  #     };
   fn make_shopping_list_d() -> HashSet<&'static str> {
-	  PETS.iter()
-	  	.chain(std::iter::once(&NEARBY_DUCK))
-	  	.filter(|animal| animal.is_hungry)
-	  	.map(|animal| animal.meal_needed)
-	  	.collect()
-  } 
+      PETS.iter()
+          .chain(std::iter::once(&NEARBY_DUCK))
+          .filter(|animal| animal.is_hungry)
+          .map(|animal| animal.meal_needed)
+          .collect()
+  }
   ```
   (Similarly, if you want to add one more item to the shopping list - maybe you're hungry, as well as your menagerie? - just add it after the `map`).
 * `Option` is iterable.
   ```rust
   # use std::collections::HashSet;
   # struct Animal {
-  # 	kind: &'static str,
-  # 	is_hungry: bool,
-  # 	meal_needed: &'static str,
+  #     kind: &'static str,
+  #     is_hungry: bool,
+  #     meal_needed: &'static str,
   # }
   # static PETS: [Animal; 0] = [];
   # struct Pond;
   # static MY_POND: Pond = Pond;
   fn pond_inhabitant(pond: &Pond) -> Option<&Animal> {
-  	// ...
+      // ...
   #    None
   }
 
   fn make_shopping_list_d() -> HashSet<&'static str> {
-  	PETS.iter()
-  		.chain(pond_inhabitant(&MY_POND))
-  		.filter(|animal| animal.is_hungry)
-  		.map(|animal| animal.meal_needed)
-  		.collect()
+      PETS.iter()
+          .chain(pond_inhabitant(&MY_POND))
+          .filter(|animal| animal.is_hungry)
+          .map(|animal| animal.meal_needed)
+          .collect()
   }
   ```
 
@@ -115,27 +115,27 @@ There are other cases where in C++ you might materialize a collection, whereas i
 
   ```mermaid
   flowchart LR
-	%%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
-  	Pets
-  	Filter([filter by hunger])
-  	Map([map to noms])
-  	Meals
-    uniqueify([uniqueify])
-  	shopping[Shopping list]
-  	Pets ---> Filter
+    %%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
+      Pets
+      Filter([filter by hunger])
+      Map([map to noms])
+      Meals
+      uniqueify([uniqueify])
+      shopping[Shopping list]
+      Pets ---> Filter
       Pond
-  	Pond ---> inhabitant
+      Pond ---> inhabitant
       inhabitant[Optional pond inhabitant]
-  	inhabitant ---> Map
-  	Filter ---> Map
-  	Map ---> Meals
-  	Meals ---> uniqueify
-  	uniqueify ---> shopping
+      inhabitant ---> Map
+      Filter ---> Map
+      Map ---> Meals
+      Meals ---> uniqueify
+      uniqueify ---> shopping
   ```
 
 * Here are other iterator APIs that will come in useful:
-	* [cloned](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.cloned)
-	* [flatten](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten)
+    * [cloned](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.cloned)
+    * [flatten](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten)
 
 To summarize: While in C++ you tend to operate on collections by performing a series of operations on each individual item, in Rust you'll typically apply a pipeline of operations to the whole collection. Make this mental switch and your code will not just become more idiomatic but more efficient, too.
 
@@ -145,27 +145,27 @@ In Rust, it's common to reuse the same name for multiple variables in a function
 
 * You may no longer need to change a mutable variable after a certain point, and if your code is sufficiently complex you might want the compiler to guarantee this for you:
 
-	```rust
-	# fn spot_ate_my_slippers() -> bool {
-	# 	false
-	# }
-	# fn feed(_: &str) {}
-	let mut good_boy = "Spot";
-	if spot_ate_my_slippers() {
-		good_boy = "Rover";
-	}
-	let good_boy = good_boy; // never going to change my dog again, who's a good boy
-	feed(&good_boy);
-	```
+    ```rust
+    # fn spot_ate_my_slippers() -> bool {
+    #     false
+    # }
+    # fn feed(_: &str) {}
+    let mut good_boy = "Spot";
+    if spot_ate_my_slippers() {
+        good_boy = "Rover";
+    }
+    let good_boy = good_boy; // never going to change my dog again, who's a good boy
+    feed(&good_boy);
+    ```
 
 * Another common pattern is to retain the same variable name as you gradually unwrap things to a simpler type:
 
-	```rust
-	# let url = "http://foo.com:1234";
-	let port_number = url.split(":").skip(2).next().unwrap();
-		// hmm, maybe somebody else already wrote a better URL parser....? naah, probably not
-	let port_number = port_number.parse::<u16>().unwrap();
-	```
+    ```rust
+    # let url = "http://foo.com:1234";
+    let port_number = url.split(":").skip(2).next().unwrap();
+        // hmm, maybe somebody else already wrote a better URL parser....? naah, probably not
+    let port_number = port_number.parse::<u16>().unwrap();
+    ```
 
 ## How can I avoid the performance penalty of `unwrap()`?
 
@@ -179,9 +179,9 @@ For example, note the `unwrap()` in here (implying some runtime branch):
 # fn test_parse() -> Result<u64,std::num::ParseIntError> {
 # let s = "0x64a";
 if s.starts_with("0x") {
-  u64::from_str_radix(s.strip_prefix("0x").unwrap(), 16)
+    u64::from_str_radix(s.strip_prefix("0x").unwrap(), 16)
 } else {
-  s.parse::<u64>()
+    s.parse::<u64>()
 }
 # }
 ```
@@ -192,8 +192,8 @@ and no extra `unwrap()` here:
 # fn test_parse() -> Result<u64,std::num::ParseIntError> {
 # let s = "0x64a";
 match s.strip_prefix("0x") {
-  None => s.parse::<u64>(),
-  Some(remainder) => u64::from_str_radix(remainder, 16),
+    None => s.parse::<u64>(),
+    Some(remainder) => u64::from_str_radix(remainder, 16),
 }
 # }
 ```
