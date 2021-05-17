@@ -1,4 +1,4 @@
-# Questions about code within your functions
+# Questions about code in function bodies
 
 ## How can I avoid the performance penalty of bounds checks?
 
@@ -8,24 +8,7 @@ Rust array and list accesses are all bounds checked. You may be worried about a 
 
 Rust gives you choices around functional versus imperative style, but things often work better in a functional style. Specifically - if you've got something iterable, then there are probably functional methods to do what you want.
 
-For instance, supposing you need to work out what food to get at the petshop:
-
-```mermaid
-flowchart LR
-	Pets
-	Filter([filter by hunger])
-	Map([map to noms])
-	Meals
-    uniqueify([uniqueify])
-	shopping[Shopping list]
-	Pets ---> Filter
-	Filter ---> Map
-	Map ---> Meals
-	Meals ---> uniqueify
-	uniqueify ---> shopping
-```
-
-Here's code that's similar to what you might write in C++:
+For instance, suppose you need to work out what food to get at the petshop. Here's code that's similar to what you might write in C++:
 
 ```rust
 {{#include pets.rs}}
@@ -127,8 +110,11 @@ There are other cases where in C++ you might materialize a collection, whereas i
   }
   ```
 
+  Here's a diagram showing how data flows in this iterator pipeline:
+
   ```mermaid
   flowchart LR
+	%%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
   	Pets
   	Filter([filter by hunger])
   	Map([map to noms])
@@ -146,9 +132,11 @@ There are other cases where in C++ you might materialize a collection, whereas i
   	uniqueify ---> shopping
   ```
 
-A list of other iterator-related APIs to become comfortable with:
-* [cloned](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.cloned)
-* [flatten](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten)
+* Here are other iterator APIs that will come in useful:
+	* [cloned](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.cloned)
+	* [flatten](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten)
+
+To summarize: While in C++ you tend to operate on collections by performing a series of operations on each individual item, in Rust you'll typically apply a pipeline of operations to the whole collection. Make this mental switch and your code will not just become more idiomatic but more efficient, too.
 
 ## Isn't it confusing to use the same variable name twice?
 
