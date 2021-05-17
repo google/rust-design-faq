@@ -97,10 +97,11 @@ There are other cases where in C++ you might materialize a collection, whereas i
   # static PETS: [Animal; 0] = [];
   # struct Pond;
   # static MY_POND: Pond = Pond;
-  # fn pond_inhabitant(pond: &Pond) -> Option<&Animal> {
-  # 	// ...
+  fn pond_inhabitant(pond: &Pond) -> Option<&Animal> {
+  	// ...
   #    None
-  # }
+  }
+
   fn make_shopping_list_d() -> HashSet<&'static str> {
   	PETS.iter()
   		.chain(pond_inhabitant(&MY_POND))
