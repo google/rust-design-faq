@@ -102,7 +102,7 @@ Here are some more iterator techniques to help avoid materializing a collection:
   #    None
   }
 
-  fn make_shopping_list_d() -> HashSet<&'static str> {
+  fn make_shopping_list_e() -> HashSet<&'static str> {
       PETS.iter()
           .chain(pond_inhabitant(&MY_POND))
           .filter(|animal| animal.is_hungry)
