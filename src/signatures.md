@@ -86,15 +86,13 @@ So you have a variety of interesting ways to _slightly_ annoy your callers under
 TL;DR: choose the middle option, `&[&str]`. If your caller happens to have a vector of `String`, it's relatively little work to get a slice of `&str`:
 
 ```rust
-use std::iter::FromIterator;
-
 # fn b(params: &[&str]) {
 # }
 
 fn main() {
     // Instead of b(&vec![format!("hello")]);
     let hellos = vec![format!("hello")];
-    b(&Vec::from_iter(hellos.iter().map(String::as_str)));
+    b(&hellos.iter().map(String::as_str).collect::<Vec<_>>());
 }
 ```
 
