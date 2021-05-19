@@ -8,7 +8,7 @@ Rust array and list accesses are all bounds checked. You may be worried about a 
 
 Rust gives you choices around functional versus imperative style, but things often work better in a functional style. Specifically - if you've got something iterable, then there are probably functional methods to do what you want.
 
-For instance, suppose you need to work out what food to get at the petshop. Here's code that's similar to what you might write in C++:
+For instance, suppose you need to work out what food to get at the petshop. Here's code that does this in an imperative style:
 
 ```rust
 {{#include pets.rs}}
@@ -54,11 +54,11 @@ The obvious advantage of the third approach is that it's more concise, but less 
 
 * The first solution may require Rust to do array bounds checks inside each iteration of the loop, making Rust potentially slower than C++. In this sort of simple example, it likely wouldn't, but functional pipelines simply don't require bounds checks.
 * The final container (a `HashSet` in this case) may be able to allocate roughly the right size at the outset, using the [size_hint](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.size_hint) of a Rust iterator.
-* Rust may be better able to [auto-vectorize iterator-style code to use SIMD instructions](https://www.minimalrust.com/an-adventure-in-simd/).
+* If you use iterator-style code rather than imperative code, it's more likely the Rust compiler will be able to [auto-vectorize using SIMD instructions](https://www.minimalrust.com/an-adventure-in-simd/).
 * There is no mutable state within the function. This makes it easier to verify that the code is correct and to avoid introducing bugs when changing it. In this simple example it may be obvious that calling the `HashSet::insert` is the only mutation to the set, but in more complex scenarios it is quite easy to lose the overview.
 * And as a new arrival from C++, you may find this hard to believe: For an experienced Rustacean it'll be more readable.
 
-There are other cases where in C++ you might materialize a collection, whereas in Rust you just don't need to:
+Here are some more iterator techniques to help avoid materializing a collection:
 
 * You can [chain two iterators together](https://doc.rust-lang.org/std/iter/struct.Chain.html) to make a longer one.
 * If you need to iterate two lists, [zip them together](https://doc.rust-lang.org/std/iter/struct.Zip.html) to avoid bounds checks on either.
@@ -137,6 +137,8 @@ There are other cases where in C++ you might materialize a collection, whereas i
     * [cloned](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.cloned)
     * [flatten](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten)
 
+C++20 recently introduced [ranges](https://en.cppreference.com/w/cpp/ranges), a feature that allows you to pipeline operations on a collection similar to the way Rust iterators do, so this style of programming is likely to become more common in C++ too.
+
 To summarize: While in C++ you tend to operate on collections by performing a series of operations on each individual item, in Rust you'll typically apply a pipeline of operations to the whole collection. Make this mental switch and your code will not just become more idiomatic but more efficient, too.
 
 ## Isn't it confusing to use the same variable name twice?
@@ -169,7 +171,7 @@ In Rust, it's common to reuse the same name for multiple variables in a function
 
 ## How can I avoid the performance penalty of `unwrap()`?
 
-Programmers arriving from the `match`-less wastelands of C++ often underuse `match`.
+C++ has no equivalent to Rust's `match`, so programmers coming from C++ often underuse it.
 
 A heuristic: if you find yourself `unwrap()`ing, _especially_ in an `if`/`else` statement, you should restructure your code to use a more sophisticated `match`.
 
