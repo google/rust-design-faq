@@ -9,6 +9,6 @@ title = "faqs.rs"
 command = "mdbook-mermaid"
 [output]
 [output.html]
-additional-js =["mermaid.min.js", "mermaid-init.js"]
+additional-js = ["third_party/mermaid/mermaid.min.js", "third_party/mermaid/mermaid-init.js"]
 [output.linkcheck]
 follow-web-links = true

@@ -19,3 +19,5 @@ The guide starts with idioms at the small scale - answering questions about how 
 The following awesome people helped write the answers here, and they're quoted using the abbreviations given.
 
 Thanks to Alyssa Haroldsen (AH), Augie Fackler (AF), Łukasz Anforowicz (LA), Manish Goregaokar (MG), Mike Forster (MF), Miguel Young de la Sota (MY), and Tyler Mandry (TM).
+
+Licensed under either of Apache License, Version 2.0 or MIT license at your option.
