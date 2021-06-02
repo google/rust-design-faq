@@ -230,18 +230,17 @@ crates optimally for your semantic needs.
 
 ## What crates should everyone know about?
 
-* [rayon](https://docs.rs/rayon/) - parallelizing
-* [serde](https://docs.rs/serde/) - serializing and deserializing
-* [crossbeam](https://docs.rs/crossbeam/) - all sorts of parallelism tools
-* [itertools](https://docs.rs/itertools/) - makes it slightly more pleasant
-  to work with iterators. (For instance, if you want to join an iterator of
-  strings, you can just go ahead and do that, without needing to collect the
-  strings into a `Vec` first)
-* [petgraph](https://docs.rs/petgraph/) - graph data structures
-* [slotmap](https://docs.rs/slotmap/) - arena-like key-value map
-* [nom](https://docs.rs/nom/) - parsing
-* [clap](https://docs.rs/clap/) - command-line parsing
-* [regex](https://docs.rs/regex/) - err, regular expressions
-* [ring](https://docs.rs/ring/) - the leading crypto library.
-* [nalgebra](https://docs.rs/nalgebra/) - linear algebra
-* [once_cell](https://docs.rs/once_cell/) - complex static data
+| Crate                                   | Description                        |
+|:--------------------------------------- |:---------------------------------- |
+| [rayon](https://docs.rs/rayon/)         | parallelizing                      |
+| [serde](https://docs.rs/serde/)         | serializing and deserializing      |
+| [crossbeam](https://docs.rs/crossbeam/) | all sorts of parallelism tools     |
+| [itertools](https://docs.rs/itertools/) | makes it slightly more pleasant to work with iterators. (For instance, if you want to join an iterator of strings, you can just go ahead and do that, without needing to collect the strings into a `Vec` first) |
+| [petgraph](https://docs.rs/petgraph/)   | graph data structures              |
+| [slotmap](https://docs.rs/slotmap/)     | arena-like key-value map           |
+| [nom](https://docs.rs/nom/)             | parsing                            |
+| [clap](https://docs.rs/clap/)           | command-line parsing               |
+| [regex](https://docs.rs/regex/)         | err, regular expressions           |
+| [ring](https://docs.rs/ring/)           | the leading crypto library         |
+| [nalgebra](https://docs.rs/nalgebra/)   | linear algebra                     |
+| [once_cell](https://docs.rs/once_cell/) | complex static data                |
