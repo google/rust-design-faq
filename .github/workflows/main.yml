@@ -7,20 +7,20 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
-          mdbook-version: '0.4.6'
+          mdbook-version: '0.4.10'
           # mdbook-version: 'latest'
 
-      - name: Install mdbook-linkcheck
-        run: |
-          curl -LSfs https://japaric.github.io/trust/install.sh | \
-            sh -s -- --git Michael-F-Bryan/mdbook-linkcheck
+      #- name: Install mdbook-linkcheck
+        #run: |
+          #curl -LSfs https://japaric.github.io/trust/install.sh | \
+            #sh -s -- --git Michael-F-Bryan/mdbook-linkcheck
     
       - name: Install mdbook-mermaid
         run: |
@@ -34,4 +34,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./book
-          cname: idioms.rs
+          cname: cppfaq.rs
