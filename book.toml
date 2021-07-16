@@ -10,6 +10,9 @@ command = "mdbook-mermaid"
 [output]
 [output.html]
 additional-js = ["third_party/mermaid/mermaid.min.js", "third_party/mermaid/mermaid-init.js"]
+cname = "cppfaq.rs"
+git-repository-url = "https://github.com/google/rust-design-faq"
+destination = "docs"
 [output.linkcheck]
 follow-web-links = true
 optional = true
