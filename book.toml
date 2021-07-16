@@ -13,11 +13,6 @@ additional-js = ["third_party/mermaid/mermaid.min.js", "third_party/mermaid/merm
 cname = "cppfaq.rs"
 git-repository-url = "https://github.com/google/rust-design-faq"
 
-# We'd like to enable linkcheck, but at present it causes
-# trouble because mdbook disambiguates the output into different
-# subdirectories 'html' and 'linkcheck'. It's not yet clear how
-# to direct github pages to pay attention to the 'html' directory.
-# TODO - work on
-#[output.linkcheck]
-#follow-web-links = true
-#optional = true
+[output.linkcheck]
+follow-web-links = true
+optional = true
