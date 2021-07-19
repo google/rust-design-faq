@@ -8,7 +8,7 @@ This book is a collection of frequently asked questions for those arriving from 
 
 Although it's structured as questions and answers, it can also be read front-to-back, to give you hints about how to adapt your C++/Java thinking to a more idiomatically Rusty approach.
 
-It does not aim to teach you Rust - there are many better resources. It doesn't aim to talk about Rust idioms _in general_ - [there are existing guides for that](https://rust-unofficial.github.io/patterns/idioms/index.html). This guide is specifically about transitioning from some other traditionally OO language. If you're coming from such a language, you'll have questions about how to achieve the same outcomes in idiomatic Rust. That's what this guide is for.
+It does not aim to teach you Rust - there are [many better resources](https://www.rust-lang.org/learn). It doesn't aim to talk about Rust idioms _in general_ - [there are great existing guides for that](https://rust-unofficial.github.io/patterns/idioms/index.html). This guide is specifically about transitioning from some other traditionally OO language. If you're coming from such a language, you'll have questions about how to achieve the same outcomes in idiomatic Rust. That's what this guide is for.
 
 # Structure
 
@@ -19,5 +19,7 @@ The guide starts with idioms at the small scale - answering questions about how 
 The following awesome people helped write the answers here, and they're quoted using the abbreviations given.
 
 Thanks to Alyssa Haroldsen (AH), Augie Fackler (AF), Łukasz Anforowicz (LA), Manish Goregaokar (MG), Mike Forster (MF), Miguel Young de la Sota (MY), and Tyler Mandry (TM).
+
+Their views have been edited and collated by Adrian Taylor and Martin Brænne. Any errors or misrepresentations are ours.
 
 Licensed under either of Apache License, Version 2.0 or MIT license at your option.
