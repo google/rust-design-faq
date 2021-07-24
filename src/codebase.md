@@ -256,27 +256,28 @@ Your initial decision should be a matter of policy. Choose between:
 * I want to manually specify the cross-language interface in order to keep
   a degree of isolation and to avoid proliferation of uncontrolled
   cross-language boundaries. Or:
-* I need to be able to use a wide variety of _existing_ C++ functions and types
+* I need to be able to use a wide variety of existing C++ functions and types
   from Rust or vice-versa, without the need to specify the interface.
 
-If you choose the former approach, the "market leader" for C++ interoperability
+If you choose the former approach, the modern standard for C++ interoperability
 is [cxx](https://cxx.rs). You specify cross-language interfaces in a
 Rust-like interface definition language (within your Rust file). Both Rust and
-C++ code is generated, to make the interface natural in each language. For
+C++ bindings code is generated, to make the interface natural in each language. For
 example, you'll find idiomatic Rust wrappers for [`std::string`](https://docs.rs/cxx/1.0.50/cxx/struct.CxxString.html) and [`std::unique_ptr`](https://docs.rs/cxx/1.0.50/cxx/struct.UniquePtr.html).
 This doesn't just make things easier and more idiomatic: by understanding
 standard C++ ownership models, `cxx` can allow Rust code to interact with
 C++ without widespread use of `unsafe`.
 
 If you need to access a wide variety of existing C++ types and functions, you
-won't want to specify the interface an an IDL. Instead, you can generate bindings
-to existing C++ code using [`bindgen`](https://rust-lang.github.io/rust-bindgen/).
+may be tempted to generate bindings to existing C++ headers using [`bindgen`](https://rust-lang.github.io/rust-bindgen/).
 `bindgen` is astonishingly good at understanding a wide variety of C++ constructs -
 but its generated bindings are full of `unsafe` functions and raw pointers.
 Interacting with `bindgen`-generated bindings is not idiomatic and will require
-unsafe Rust.
+unsafe Rust. It may also be more time consuming than using `cxx`:
 
-At present, there is no established solution which combines the automatic
-generation of `bindgen` with the idiomatic, safe interoperability offered by
-`cxx`. It's not clear whether this is even _desirable_ but [several](https://github.com/google/autocxx)
+> In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. - DT
+
+At present, there is no established solution which combines the idiomatic, safe
+interoperability offered by `cxx` with the automatic generation offered by
+`bindgen`. It's not clear whether this is even _possible_ but [several](https://github.com/google/autocxx)
 [projects](https://github.com/google/mosaic) are aiming in this direction.

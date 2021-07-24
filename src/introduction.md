@@ -18,7 +18,7 @@ The guide starts with idioms at the small scale - answering questions about how 
 
 The following awesome people helped write the answers here, and they're quoted using the abbreviations given.
 
-Thanks to Alyssa Haroldsen (AH), Augie Fackler (AF), Łukasz Anforowicz (LA), Manish Goregaokar (MG), Mike Forster (MF), Miguel Young de la Sota (MY), and Tyler Mandry (TM).
+Thanks to Alyssa Haroldsen (AH), Augie Fackler (AF), Łukasz Anforowicz (LA), Manish Goregaokar (MG), Mike Forster (MF), Miguel Young de la Sota (MY), David Tolnay (DT) [(@davidtolnay)](https://twitter.com/davidtolnay) and Tyler Mandry (TM).
 
 Their views have been edited and collated by Adrian Taylor and Martin Brænne. Any errors or misrepresentations are ours.
 
