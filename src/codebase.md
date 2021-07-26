@@ -208,8 +208,8 @@ Low-level data structures are _hard_ in Rust. Arguably, Rust merely makes plain
 all the lifetime and ownership issues which you already had in other languages, but
 the compiler is brutal about it, and you're going to have a bad day.
 
-Even something as simple as a
-[doubly-linked list is notoriously hard](https://rust-unofficial.github.io/too-many-lists/).
+Even something as simple as a doubly-linked list is notoriously hard; so much so
+that there is a [book that teaches Rust based solely on linked lists](https://rust-unofficial.github.io/too-many-lists/).
 As that (wonderful) book makes clear, you are often faced with a choice:
 
 * [Use safe Rust, but shift compile-time checks to runtime](https://rust-unofficial.github.io/too-many-lists/fourth.html)
@@ -222,6 +222,10 @@ If you're facing this decision... perhaps there's a third way.
 You should almost always be using somebody else's tried-and-tested
 data structure.
 
+[petgraph](https://docs.rs/petgraph) and
+[slotmap](https://docs.rs/slotmap) are great examples. Use someone else's crate
+by default, and resort to writing your own only if you exhaust that option.
+
 C++ makes it hard to pull in third-party dependencies, so it's culturally normal
 to write new code. Rust makes it trivial to add dependencies, and so you will
 need to do that, even if it feels awkward for a C++ programmer.
@@ -233,10 +237,6 @@ You just can't separate the language and the ecosystem.
 You might argue that this dependency on third-party crates is concerning
 from a supply-chain security point of view. Your author would agree, but
 it's just the way you do things in Rust. Stop creating your own data structures.
-
-[petgraph](https://docs.rs/petgraph) and
-[slotmap](https://docs.rs/slotmap) are great examples. Use someone else's crate
-by default, and resort to writing your own only if you exhaust that option.
 
 ## Should I have a few big crates or lots of small ones?
 
