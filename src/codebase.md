@@ -272,8 +272,8 @@ Your initial decision should be a matter of policy. Choose between:
 * I want to manually specify the cross-language interface in order to keep
   a degree of isolation and to avoid proliferation of uncontrolled
   cross-language boundaries. Or:
-* I need to be able to use a wide variety of existing C++ functions and types
-  from Rust or vice-versa, without the need to specify the interface.
+* I want to generate comprehensive bindings automatically from existing C++
+  headers to allow arbitrary calls from Rust to C++.
 
 If you choose the former approach, the modern standard for C++ interoperability
 is [cxx](https://cxx.rs). You specify cross-language interfaces in a
@@ -284,14 +284,15 @@ This doesn't just make things easier and more idiomatic: by understanding
 standard C++ ownership models, `cxx` can allow Rust code to interact with
 C++ without widespread use of `unsafe`.
 
-If you need to access a wide variety of existing C++ types and functions, you
-may be tempted to generate bindings to existing C++ headers using [`bindgen`](https://rust-lang.github.io/rust-bindgen/).
+The latter approach doesn't work as smoothly, tempting as it may seem.
+The tool to auto-generate bindings to existing C++ headers is [`bindgen`](https://rust-lang.github.io/rust-bindgen/).
 `bindgen` is astonishingly good at understanding a wide variety of C++ constructs -
 but its generated bindings are full of `unsafe` functions and raw pointers.
-Interacting with `bindgen`-generated bindings is not idiomatic and will require
-unsafe Rust. It may also be more time consuming than using `cxx`:
+Interacting with `bindgen`-generated bindings will require unsafe Rust;
+you will likely have to manually craft idiomatic safe Rust wrappers.
+For this reason it can be more time consuming than `cxx`:
 
-> In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. - DT
+> In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. The typical real-world binding we've converted from bindgen to cxx in my codebase has been -500 lines (mostly unsafe code) +300 lines (mostly safe code; IDL included). - DT
 
 At present, there is no established solution which combines the idiomatic, safe
 interoperability offered by `cxx` with the automatic generation offered by
