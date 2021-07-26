@@ -16,10 +16,10 @@ The guide starts with idioms at the small scale - answering questions about how 
 
 # Contributors
 
-The following awesome people helped write the answers here, and they're quoted using the abbreviations given.
+The following awesome people helped write the answers here, and they're sometimes quoted using the abbreviations given.
 
-Thanks to Alyssa Haroldsen (AH), Augie Fackler (AF), Łukasz Anforowicz (LA), Manish Goregaokar (MG), Mike Forster (MF), Miguel Young de la Sota (MY), and Tyler Mandry (TM).
+Thanks to Alyssa Haroldsen [(@kupiakos)](https://twitter.com/kupiakos) (AH), Augie Fackler (AF), Łukasz Anforowicz (LA), Manish Goregaokar [(@ManishEarth)](https://twitter.com/ManishEarth) (MG), Mike Forster (MF), Miguel Young de la Sota [(@DrawsMiguel)](https://twitter.com/DrawsMiguel) (MY), and Tyler Mandry [(@tmandry)](https://twitter.com/tmandry) (TM).
 
-Their views have been edited and collated by Adrian Taylor and Martin Brænne. Any errors or misrepresentations are ours.
+Their views have been edited and collated by Adrian Taylor [(@adehohum)](https://twitter.com/adehohum) and Martin Brænne. Any errors or misrepresentations are ours.
 
 Licensed under either of Apache License, Version 2.0 or MIT license at your option.
