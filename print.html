@@ -839,18 +839,31 @@ impl Drop for SharedMutableGoatLock {
 <li>All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. <a href="https://docs.rs/bumpalo/3.6.1/bumpalo/">Bumpalo</a> formalizes this.</li>
 <li>The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (<code>\</code>arena` for example), making the provenance of those references very clear.</li>
 </ul>
-<h2 id="im-having-a-miserable-time-making-my-data-structure-due-to-the-borrow-checker"><a class="header" href="#im-having-a-miserable-time-making-my-data-structure-due-to-the-borrow-checker">I'm having a miserable time making my data structure due to the borrow checker.</a></h2>
-<p>If you're writing a data structure, you've probably made poor life
-choices in the first place. You should be using somebody else's tried-and-tested
-data structure. <a href="https://docs.rs/petgraph">petgraph</a> and
+<h2 id="im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe"><a class="header" href="#im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe">I'm having a miserable time making my data structure. Should I use unsafe?</a></h2>
+<p>Low-level data structures are <em>hard</em> in Rust. Arguably, Rust merely makes plain
+all the lifetime and ownership issues which you already had in other languages, but
+the compiler is brutal about it, and you're going to have a bad day.</p>
+<p>Even something as simple as a doubly-linked list is notoriously hard; so much so
+that there is a <a href="https://rust-unofficial.github.io/too-many-lists/">book that teaches Rust based solely on linked lists</a>.
+As that (wonderful) book makes clear, you are often faced with a choice:</p>
+<ul>
+<li><a href="https://rust-unofficial.github.io/too-many-lists/fourth.html">Use safe Rust, but shift compile-time checks to runtime</a></li>
+<li><a href="https://rust-unofficial.github.io/too-many-lists/fifth.html">Use <code>unsafe</code></a> and
+take the same degree of care you'd take in C or C++. And, just like in C or C++,
+you'll introduce <a href="https://www.cvedetails.com/vulnerability-list/vendor_id-19029/product_id-48677/Rust-lang-Rust.html">security vulnerabilities in the unsafe code</a>.</li>
+</ul>
+<p>If you're facing this decision... perhaps there's a third way.</p>
+<p>You should almost always be using somebody else's tried-and-tested
+data structure.</p>
+<p><a href="https://docs.rs/petgraph">petgraph</a> and
 <a href="https://docs.rs/slotmap">slotmap</a> are great examples. Use someone else's crate
 by default, and resort to writing your own only if you exhaust that option.</p>
-<p>C++ makes it hard to pull in third-party dependencies, but this is normal in
-Rust. A typical Rust project will depend on at least 5-10 other crates, which in
-turn will pull in lots of transitive dependencies.</p>
-<p>The ease of using other people's data structures goes hand-in-hand with the
-difficulty of creating your own. These two features of the Rust language have
-co-evolved.</p>
+<p>C++ makes it hard to pull in third-party dependencies, so it's culturally normal
+to write new code. Rust makes it trivial to add dependencies, and so you will
+need to do that, even if it feels awkward for a C++ programmer.</p>
+<p>This <em>ease</em> of adding dependencies <strong>co-evolved</strong> with the
+<em>difficulty</em> of making data structures. It's simply a part of programming in Rust.
+You just can't separate the language and the ecosystem.</p>
 <p>You might argue that this dependency on third-party crates is concerning
 from a supply-chain security point of view. Your author would agree, but
 it's just the way you do things in Rust. Stop creating your own data structures.</p>
