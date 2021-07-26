@@ -177,14 +177,14 @@ Note another advantage of builders: Overloaded constructors often don't provide 
 
 Rust functions are often single-purpose. They either:
 
-* Return a value; or
+* Return a value without any side effects; or
 * Do something (i.e. have side effects) and return nothing.
 
 In neither case do you need to think about `#[must_use]`. (In the first case,
 nobody would call your function unless they were going to use the result.)
 
 `#[must_use]` is useful for those rarer functions which return a result _and_
-have side-effects. In most such cases, it's wise to specify `#[must_use]`, unless
+have side effects. In most such cases, it's wise to specify `#[must_use]`, unless
 the return value is truly optional (for example in
 [`HashMap::insert`](https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.insert)).
 
@@ -200,15 +200,16 @@ be a `memcpy`, but it's often optimized away.
 
 > Express the ownership relationship in the type system, instead of trying to second-guess the compiler for efficiency. - AF
 
-The moves are, of course, destructive - and unlike in C++, that's enforced at
-compile time. Some C++ objects become toxic after they've moved; that's not a
+The moves are, of course, destructive - and unlike in C++, the compiler
+enforces that you don't reuse a variable that has been moved.
+Some C++ objects become toxic after they've moved; that's not a
 risk in Rust.
 
 So here's the heuristic: if a caller shouldn't be able to use an object again,
 pass it via move semantics in order to consume it.
 
 An extreme example: a UUID is supposed to be globally unique - it might cause a
-logic error for your caller to retain knowledge of a UUID once you've got it.
+logic error for a caller to retain knowledge of a UUID after passing it to a callee.
 
 More generally, consume data enthusiastically to avoid logical errors during future
 refactorings. For instance, if some command-line options are overridden by a
@@ -221,5 +222,5 @@ surprisingly effective at spotting errors in your assumptions.
 Sometimes. If you've got a member function which destroys or transforms a thing,
 it should take `self` by value. Examples:
 
-* Closing a file and returning a result code
+* Closing a file and returning a result code.
 * A builder-pattern object which spits out the thing it was building. ([Example](https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate)).
