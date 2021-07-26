@@ -300,6 +300,53 @@ fn main() {
 <span class="boring">}
 </span></code></pre></pre>
 <p>Note another advantage of builders: Overloaded constructors often don't provide all possible combinations of parameters, whereas with the builder pattern, you can combine exactly the parameters you want.</p>
+<h2 id="when-must-i-use-must_use"><a class="header" href="#when-must-i-use-must_use">When must I use <code>#[must_use]</code>?</a></h2>
+<blockquote>
+<p>Use it on Results and mutex locks. - MG</p>
+</blockquote>
+<p><code>#[must_use]</code> causes a compile error if the caller ignores the return value.</p>
+<p>Rust functions are often single-purpose. They either:</p>
+<ul>
+<li>Return a value without any side effects; or</li>
+<li>Do something (i.e. have side effects) and return nothing.</li>
+</ul>
+<p>In neither case do you need to think about <code>#[must_use]</code>. (In the first case,
+nobody would call your function unless they were going to use the result.)</p>
+<p><code>#[must_use]</code> is useful for those rarer functions which return a result <em>and</em>
+have side effects. In most such cases, it's wise to specify <code>#[must_use]</code>, unless
+the return value is truly optional (for example in
+<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.insert"><code>HashMap::insert</code></a>).</p>
+<h2 id="when-should-i-take-parameters-by-value"><a class="header" href="#when-should-i-take-parameters-by-value">When should I take parameters by value?</a></h2>
+<p>Move semantics are more common in Rust than in C++.</p>
+<blockquote>
+<p>In C++ moves tend to be an optimization, whereas in Rust they're a key semantic part of the program. - MY</p>
+</blockquote>
+<p>To a first approximation, you should assume similar performance when passing
+things by (moved) value or by reference. It's true that a move may turn out to
+be a <code>memcpy</code>, but it's often optimized away.</p>
+<blockquote>
+<p>Express the ownership relationship in the type system, instead of trying to second-guess the compiler for efficiency. - AF</p>
+</blockquote>
+<p>The moves are, of course, destructive - and unlike in C++, the compiler
+enforces that you don't reuse a variable that has been moved.
+Some C++ objects become toxic after they've moved; that's not a
+risk in Rust.</p>
+<p>So here's the heuristic: if a caller shouldn't be able to use an object again,
+pass it via move semantics in order to consume it.</p>
+<p>An extreme example: a UUID is supposed to be globally unique - it might cause a
+logic error for a caller to retain knowledge of a UUID after passing it to a callee.</p>
+<p>More generally, consume data enthusiastically to avoid logical errors during future
+refactorings. For instance, if some command-line options are overridden by a
+runtime choice, consume those old options - then any future refactoring which
+uses them after that point will give you a compile error. This pattern is
+surprisingly effective at spotting errors in your assumptions.</p>
+<h2 id="should-i-ever-take-self-by-value"><a class="header" href="#should-i-ever-take-self-by-value">Should I ever take <code>self</code> by value?</a></h2>
+<p>Sometimes. If you've got a member function which destroys or transforms a thing,
+it should take <code>self</code> by value. Examples:</p>
+<ul>
+<li>Closing a file and returning a result code.</li>
+<li>A builder-pattern object which spits out the thing it was building. (<a href="https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate">Example</a>).</li>
+</ul>
 
                     </main>
 
