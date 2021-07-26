@@ -202,21 +202,37 @@ If arenas still sound like a nasty workaround, consider that you might choose an
 * All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. [Bumpalo](https://docs.rs/bumpalo/3.6.1/bumpalo/) formalizes this.
 * The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (`\`arena` for example), making the provenance of those references very clear.
 
-## I'm having a miserable time making my data structure due to the borrow checker.
+## I'm having a miserable time making my data structure. Should I use unsafe?
 
-If you're writing a data structure, you've probably made poor life
-choices in the first place. You should be using somebody else's tried-and-tested
-data structure. [petgraph](https://docs.rs/petgraph) and
+Low-level data structures are _hard_ in Rust. Arguably, Rust merely makes plain
+all the lifetime and ownership issues which you already had in other languages, but
+the compiler is brutal about it, and you're going to have a bad day.
+
+Even something as simple as a doubly-linked list is notoriously hard; so much so
+that there is a [book that teaches Rust based solely on linked lists](https://rust-unofficial.github.io/too-many-lists/).
+As that (wonderful) book makes clear, you are often faced with a choice:
+
+* [Use safe Rust, but shift compile-time checks to runtime](https://rust-unofficial.github.io/too-many-lists/fourth.html)
+* [Use `unsafe`](https://rust-unofficial.github.io/too-many-lists/fifth.html) and
+take the same degree of care you'd take in C or C++. And, just like in C or C++,
+you'll introduce [security vulnerabilities in the unsafe code](https://www.cvedetails.com/vulnerability-list/vendor_id-19029/product_id-48677/Rust-lang-Rust.html).
+
+If you're facing this decision... perhaps there's a third way.
+
+You should almost always be using somebody else's tried-and-tested
+data structure.
+
+[petgraph](https://docs.rs/petgraph) and
 [slotmap](https://docs.rs/slotmap) are great examples. Use someone else's crate
 by default, and resort to writing your own only if you exhaust that option.
 
-C++ makes it hard to pull in third-party dependencies, but this is normal in
-Rust. A typical Rust project will depend on at least 5-10 other crates, which in
-turn will pull in lots of transitive dependencies.
+C++ makes it hard to pull in third-party dependencies, so it's culturally normal
+to write new code. Rust makes it trivial to add dependencies, and so you will
+need to do that, even if it feels awkward for a C++ programmer.
 
-The ease of using other people's data structures goes hand-in-hand with the
-difficulty of creating your own. These two features of the Rust language have
-co-evolved.
+This _ease_ of adding dependencies **co-evolved** with the
+_difficulty_ of making data structures. It's simply a part of programming in Rust.
+You just can't separate the language and the ecosystem.
 
 You might argue that this dependency on third-party crates is concerning
 from a supply-chain security point of view. Your author would agree, but
