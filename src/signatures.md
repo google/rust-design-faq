@@ -148,14 +148,17 @@ impl Animal {
 }
 ```
 
-For a more complex situation, you may use [the builder pattern](https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder). The builder has a set of methods which take `&mut self` and return `&mut Self`. Then a `build()` method consumes the builder as `self` and returns the final constructed object.
+For a more complex situation, you may use [the builder pattern](https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder). The builder has a set of methods which take `&mut self` and return `&mut Self`. Then add a `build()` that returns the final constructed object.
 
 ```rust
 struct BirthdayCard {}
 
 struct BirthdayCardBuilder {}
 impl BirthdayCardBuilder {
-    fn new(name: &str) -> BirthdayCardBuilder { ... }
+    fn new(name: &str) -> BirthdayCardBuilder {
+#       Self{}
+      // ...
+    }
 
     fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
 #         self
@@ -167,7 +170,7 @@ impl BirthdayCardBuilder {
         // ...
      }
 
-    fn build(self) -> BirthdayCard { BirthdayCard { /* ... */ } }
+    fn build(&mut self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 }
 ```
 
@@ -178,7 +181,10 @@ You can then [chain these](https://rust-lang.github.io/api-guidelines/type-safet
 #
 # struct BirthdayCardBuilder {}
 # impl BirthdayCardBuilder {
-#     fn new(name: &str) -> BirthdayCardBuilder { ... }
+#     fn new(name: &str) -> BirthdayCardBuilder {
+#       Self{}
+#       // ...
+#     }
 #
 #     fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
 #         self
@@ -190,7 +196,7 @@ You can then [chain these](https://rust-lang.github.io/api-guidelines/type-safet
 #         // ...
 #      }
 #
-#     fn build(self) -> BirthdayCard { BirthdayCard { /* ... */ } }
+#     fn build(&mut self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 # }
 #
  fn main() {
