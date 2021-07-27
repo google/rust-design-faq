@@ -158,7 +158,7 @@
 <h1 id="contributors"><a class="header" href="#contributors">Contributors</a></h1>
 <p>The following awesome people helped write the answers here, and they're sometimes quoted using the abbreviations given.</p>
 <p>Thanks to Alyssa Haroldsen <a href="https://twitter.com/kupiakos">(@kupiakos)</a> (AH), Augie Fackler (AF), David Tolnay <a href="https://twitter.com/davidtolnay">(@davidtolnay)</a> (DT), Łukasz Anforowicz (LA), Manish Goregaokar <a href="https://twitter.com/ManishEarth">(@ManishEarth)</a> (MG), Mike Forster (MF), Miguel Young de la Sota <a href="https://twitter.com/DrawsMiguel">(@DrawsMiguel)</a> (MY), and Tyler Mandry <a href="https://twitter.com/tmandry">(@tmandry)</a> (TM).</p>
-<p>Their views have been edited and collated by Adrian Taylor <a href="https://twitter.com/adehohum">(@adehohum)</a> and Martin Brænne. Any errors or misrepresentations are ours.</p>
+<p>Their views have been edited and collated by Adrian Taylor <a href="https://twitter.com/adehohum">(@adehohum)</a>, <a href="mailto:danakj@chromium.org">danakj@chromium.org</a> and Martin Brænne. Any errors or misrepresentations are ours.</p>
 <p>Licensed under either of Apache License, Version 2.0 or MIT license at your option.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-code-in-function-bodies"><a class="header" href="#questions-about-code-in-function-bodies">Questions about code in function bodies</a></h1>
 <h2 id="how-can-i-avoid-the-performance-penalty-of-bounds-checks"><a class="header" href="#how-can-i-avoid-the-performance-penalty-of-bounds-checks">How can I avoid the performance penalty of bounds checks?</a></h2>
@@ -614,9 +614,9 @@ fn main() {
 </span><span class="boring">fn main() {
 </span><span class="boring">struct BirthdayCard {}
 </span>impl BirthdayCard {
-    fn new(name: &amp;str) -&gt; BirthdayCard {
+    fn new(name: &amp;str) -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
+</span>        // ...
     }
 
     // Can't add more overloads:
@@ -633,14 +633,14 @@ fn main() {
 </span><span class="boring">fn main() {
 </span><span class="boring">struct Racoon {}
 </span>impl Racoon {
-  fn new() -&gt; Racoon {
+    fn new() -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
-  fn with_age(age: usize) -&gt; Racoon {
+</span>        // ...
+    }
+    fn with_age(age: usize) -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
+</span>        // ...
+    }
 }
 <span class="boring">}
 </span></code></pre></pre>
@@ -650,14 +650,14 @@ fn main() {
 </span><span class="boring">fn main() {
 </span><span class="boring">struct Animal {}
 </span>impl Animal {
-  fn new_squirrel() -&gt; Animal {
+    fn new_squirrel() -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
-  fn new_badger() -&gt; Animal {
+</span>        // ...
+    }
+    fn new_badger() -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
+</span>        // ...
+    }
 }
 <span class="boring">}
 </span></code></pre></pre>
@@ -669,20 +669,20 @@ fn main() {
 
 struct BirthdayCardBuilder {}
 impl BirthdayCardBuilder {
-    fn new(name: &amp;str) -&gt; BirthdayCardBuilder {
+    fn new(name: &amp;str) -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
+</span>        // ...
     }
 
-    fn age(&amp;mut self, age: i32) -&gt; &amp;mut BirthdayCardBuilder {
+    fn age(&amp;mut self, age: i32) -&gt; &amp;mut Self {
 <span class="boring">        self
 </span>        // ...
-     }
+    }
 
-    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut BirthdayCardBuilder {
+    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut Self {
 <span class="boring">        self
 </span>        // ...
-     }
+    }
 
     fn build(&amp;mut self) -&gt; BirthdayCard { BirthdayCard { /* ... */ } }
 }
@@ -711,7 +711,7 @@ impl BirthdayCardBuilder {
 </span><span class="boring">    fn build(&amp;mut self) -&gt; BirthdayCard { BirthdayCard { /* ... */ } }
 </span><span class="boring">}
 </span><span class="boring">
-</span> fn main() {
+</span>fn main() {
     let card = BirthdayCardBuilder::new(&quot;Paul&quot;)
         .age(64)
         .text(&quot;Happy Valentine's Day!&quot;)

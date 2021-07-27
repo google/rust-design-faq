@@ -237,9 +237,9 @@ fn main() {
 </span><span class="boring">fn main() {
 </span><span class="boring">struct BirthdayCard {}
 </span>impl BirthdayCard {
-    fn new(name: &amp;str) -&gt; BirthdayCard {
+    fn new(name: &amp;str) -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
+</span>        // ...
     }
 
     // Can't add more overloads:
@@ -256,14 +256,14 @@ fn main() {
 </span><span class="boring">fn main() {
 </span><span class="boring">struct Racoon {}
 </span>impl Racoon {
-  fn new() -&gt; Racoon {
+    fn new() -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
-  fn with_age(age: usize) -&gt; Racoon {
+</span>        // ...
+    }
+    fn with_age(age: usize) -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
+</span>        // ...
+    }
 }
 <span class="boring">}
 </span></code></pre></pre>
@@ -273,14 +273,14 @@ fn main() {
 </span><span class="boring">fn main() {
 </span><span class="boring">struct Animal {}
 </span>impl Animal {
-  fn new_squirrel() -&gt; Animal {
+    fn new_squirrel() -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
-  fn new_badger() -&gt; Animal {
+</span>        // ...
+    }
+    fn new_badger() -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
-  }
+</span>        // ...
+    }
 }
 <span class="boring">}
 </span></code></pre></pre>
@@ -292,20 +292,20 @@ fn main() {
 
 struct BirthdayCardBuilder {}
 impl BirthdayCardBuilder {
-    fn new(name: &amp;str) -&gt; BirthdayCardBuilder {
+    fn new(name: &amp;str) -&gt; Self {
 <span class="boring">      Self{}
-</span>      // ...
+</span>        // ...
     }
 
-    fn age(&amp;mut self, age: i32) -&gt; &amp;mut BirthdayCardBuilder {
+    fn age(&amp;mut self, age: i32) -&gt; &amp;mut Self {
 <span class="boring">        self
 </span>        // ...
-     }
+    }
 
-    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut BirthdayCardBuilder {
+    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut Self {
 <span class="boring">        self
 </span>        // ...
-     }
+    }
 
     fn build(&amp;mut self) -&gt; BirthdayCard { BirthdayCard { /* ... */ } }
 }
@@ -334,7 +334,7 @@ impl BirthdayCardBuilder {
 </span><span class="boring">    fn build(&amp;mut self) -&gt; BirthdayCard { BirthdayCard { /* ... */ } }
 </span><span class="boring">}
 </span><span class="boring">
-</span> fn main() {
+</span>fn main() {
     let card = BirthdayCardBuilder::new(&quot;Paul&quot;)
         .age(64)
         .text(&quot;Happy Valentine's Day!&quot;)
