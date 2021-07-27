@@ -101,44 +101,50 @@ fn main() {
 You can't do this:
 
 ```rust
-# struct BirthdayCard;
+struct BirthdayCard {}
 impl BirthdayCard {
-    fn new(name: &str) -> BirthdayCard {
-#       Self
-        // ...
-    }
+    fn new(name: &str) -> BirthdayCard { ... }
 
     // Can't add more overloads:
     //
-    // fn new(name: &str, age: i32) -> BirthdayCard {
-    //   ...
-    // }
+    // fn new(name: &str, age: i32) -> BirthdayCard { ... }
     //
-    // fn new(name: &str, text: &str) -> BirthdayCard {
-    //   ...
-    // }
+    // fn new(name: &str, text: &str) -> BirthdayCard { ... }
 }
 ```
 
-Instead, use [the builder pattern](https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder). In place of overloaded constructors, add methods which take `&mut self` and return `&mut Self`:
+If you have a default constructor, and a few variants for other cases, you can simply write them as different static methods. An idiomatic way to do this is to write a `new()` constructor and then `with_foo()` constructors that apply the given "foo" when constructing.
 
 ```rust
-# struct BirthdayCard;
-impl BirthdayCard {
-    fn new(name: &str) -> BirthdayCard {
-#       Self
-        // ...
-    }
+impl Racoon {
+  fn new() -> Racoon { ... }
+  fn with_age(age: usize) -> Racoon { ... }
+}
+```
 
-    fn age(&mut self, age: i32) -> &mut BirthdayCard {
-#       self
-        // ...
-    }
+If you have have a bunch of constructors and no default, it may make sense to instead provide a set of `new_foo()` constructors.
 
-    fn text(&mut self, text: &str) -> &mut BirthdayCard {
-#       self
-      // ...
-    }
+```rust
+impl Animal {
+  fn new_squirrel() -> Animal { ... }
+  fn new_badger() -> Animal { ... }
+}
+```
+
+For a more complex situation, you may use [the builder pattern](https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder). The builder has a set of methods which take `&mut self` and return `&mut Self`. Then a `build()` method consumes the builder as `self` and returns the final constructed object.
+
+```rust
+struct BirthdayCard {}
+
+struct BirthdayCardBuilder {}
+impl BirthdayCardBuilder {
+    fn new(name: &str) -> BirthdayCardBuilder { ... }
+
+    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder { ... }
+
+    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder { ... }
+
+    fn build(self) -> BirthdayCard { ... }
 }
 ```
 
