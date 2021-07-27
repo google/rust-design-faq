@@ -103,7 +103,7 @@ You can't do this:
 ```rust
 # struct BirthdayCard {}
 impl BirthdayCard {
-    fn new(name: &str) -> BirthdayCard {
+    fn new(name: &str) -> Self {
 #       Self{}
         // ...
     }
@@ -121,11 +121,11 @@ If you have a default constructor, and a few variants for other cases, you can s
 ```rust
 # struct Racoon {}
 impl Racoon {
-    fn new() -> Racoon {
+    fn new() -> Self {
 #       Self{}
         // ...
     }
-    fn with_age(age: usize) -> Racoon {
+    fn with_age(age: usize) -> Self {
 #       Self{}
         // ...
     }
@@ -137,11 +137,11 @@ If you have have a bunch of constructors and no default, it may make sense to in
 ```rust
 # struct Animal {}
 impl Animal {
-    fn new_squirrel() -> Animal {
+    fn new_squirrel() -> Self {
 #       Self{}
         // ...
     }
-    fn new_badger() -> Animal {
+    fn new_badger() -> Self {
 #       Self{}
         // ...
     }
@@ -155,17 +155,17 @@ struct BirthdayCard {}
 
 struct BirthdayCardBuilder {}
 impl BirthdayCardBuilder {
-    fn new(name: &str) -> BirthdayCardBuilder {
+    fn new(name: &str) -> Self {
 #       Self{}
-      // ...
+        // ...
     }
 
-    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
+    fn age(&mut self, age: i32) -> &mut Self {
 #         self
         // ...
     }
 
-    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
+    fn text(&mut self, text: &str) -> &mut Self {
 #         self
         // ...
     }
