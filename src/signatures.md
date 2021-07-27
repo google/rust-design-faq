@@ -101,10 +101,10 @@ fn main() {
 You can't do this:
 
 ```rust
-struct BirthdayCard {}
+# struct BirthdayCard {}
 impl BirthdayCard {
     fn new(name: &str) -> BirthdayCard {
-      Self{}
+#       Self{}
       // ...
     }
 
@@ -119,14 +119,14 @@ impl BirthdayCard {
 If you have a default constructor, and a few variants for other cases, you can simply write them as different static methods. An idiomatic way to do this is to write a `new()` constructor and then `with_foo()` constructors that apply the given "foo" when constructing.
 
 ```rust
-struct Racoon {}
+# struct Racoon {}
 impl Racoon {
   fn new() -> Racoon {
-      Self{}
+#       Self{}
       // ...
   }
   fn with_age(age: usize) -> Racoon {
-      Self{}
+#       Self{}
       // ...
   }
 }
@@ -135,14 +135,14 @@ impl Racoon {
 If you have have a bunch of constructors and no default, it may make sense to instead provide a set of `new_foo()` constructors.
 
 ```rust
-struct Animal {}
+# struct Animal {}
 impl Animal {
   fn new_squirrel() -> Animal {
-      Self{}
+#       Self{}
       // ...
   }
   fn new_badger() -> Animal {
-      Self{}
+#       Self{}
       // ...
   }
 }
@@ -158,12 +158,12 @@ impl BirthdayCardBuilder {
     fn new(name: &str) -> BirthdayCardBuilder { ... }
 
     fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
-        self
+#         self
         // ...
      }
 
     fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
-        self
+#         self
         // ...
      }
 
@@ -174,25 +174,25 @@ impl BirthdayCardBuilder {
 You can then [chain these](https://rust-lang.github.io/api-guidelines/type-safety.html#non-consuming-builders-preferred) into short or long constructions, passing parameters as necessary:
 
 ```rust
-struct BirthdayCard {}
-
-struct BirthdayCardBuilder {}
-impl BirthdayCardBuilder {
-    fn new(name: &str) -> BirthdayCardBuilder { ... }
-
-    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
-        self
-        // ...
-     }
-
-    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
-        self
-        // ...
-     }
-
-    fn build(self) -> BirthdayCard { BirthdayCard { /* ... */ } }
-}
-
+# struct BirthdayCard {}
+#
+# struct BirthdayCardBuilder {}
+# impl BirthdayCardBuilder {
+#     fn new(name: &str) -> BirthdayCardBuilder { ... }
+#
+#     fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
+#         self
+#         // ...
+#      }
+#
+#     fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
+#         self
+#         // ...
+#      }
+#
+#     fn build(self) -> BirthdayCard { BirthdayCard { /* ... */ } }
+# }
+#
  fn main() {
     let card = BirthdayCardBuilder::new("Paul")
         .age(64)
