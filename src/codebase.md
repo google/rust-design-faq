@@ -260,3 +260,72 @@ crates optimally for your semantic needs.
 | [ring](https://docs.rs/ring/)           | the leading crypto library         |
 | [nalgebra](https://docs.rs/nalgebra/)   | linear algebra                     |
 | [once_cell](https://docs.rs/once_cell/) | complex static data                |
+
+## How should I call C++ functions from Rust and vice versa?
+
+Use [cxx](https://cxx.rs).
+
+Oh, you want a justification? In that case, here's the history
+which brought us to this point.
+
+From the beginning, Rust supported calling C functions using [`extern "C"`](https://doc.rust-lang.org/std/keyword.extern.html),
+[`#[repr(C)]`](https://doc.rust-lang.org/reference/type-layout.html#the-c-representation)
+and [`#[no_mangle]`](https://doc.rust-lang.org/reference/abi.html#the-no_mangle-attribute).
+Such callable C functions had to be declared manually in Rust:
+
+```mermaid
+sequenceDiagram
+   Rust-->>extern: unsafe Rust function call
+   extern-->>C: call from Rust to C
+   participant extern as Rust unsafe extern "C" fn
+   participant C as Existing C function
+```
+
+[`bindgen`](https://rust-lang.github.io/rust-bindgen/) was invented
+to generate these declarations automatically from existing C/C++ header
+files. It has grown to understand an astonishingly wide variety of C++
+constructs, but its generated bindings are still `unsafe` functions
+with lots of pointers involved.
+
+```mermaid
+sequenceDiagram
+   Rust-->>extern: unsafe Rust function call
+   extern-->>C: call from Rust to C++
+   participant extern as Bindgen generated bindings
+   participant C as Existing C++ function
+```
+
+Interacting with `bindgen`-generated bindings requires unsafe Rust;
+you will likely have to manually craft idiomatic safe Rust wrappers.
+This is time-consuming and error-prone.
+
+[cxx](https://cxx.rs) automates a lot of that process. Unlike `bindgen`
+it doesn't learn about functions from existing C++ headers. Instead,
+you specify cross-language interfaces in a Rust-like interface definition
+language (IDL) within your Rust file. cxx generates both C++ and Rust code
+from that IDL, marshaling data behind the scenes on both sides such that
+you can use standard language features in your code. For example, you'll
+find idiomatic Rust wrappers for [`std::string`](https://docs.rs/cxx/1.0.50/cxx/struct.CxxString.html)
+and [`std::unique_ptr`](https://docs.rs/cxx/1.0.50/cxx/struct.UniquePtr.html)
+and idiomatic C++ wrappers for [a Rust slice](https://cxx.rs/binding/slice.html).
+
+```mermaid
+sequenceDiagram
+   Rust-->>rsbindings: safe idiomatic Rust function call
+   rsbindings-->>cxxbindings: hidden C ABI call using marshaled data
+   cxxbindings-->>cpp: call to standard idiomatic C++
+   participant rsbindings as cxx-generated Rust code
+   participant cxxbindings as cxx-generated C++ code
+   participant cpp as C++ function using STL types
+```
+
+> In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. The typical real-world binding we've converted from bindgen to cxx in my codebase has been -500 lines (mostly unsafe code) +300 lines (mostly safe code; IDL included). - DT
+
+The greatest benefit is that cxx sufficiently understands C++ STL
+object ownership norms that the generated bindings can be used from
+safe Rust code.
+
+At present, there is no established solution which combines the idiomatic, safe
+interoperability offered by `cxx` with the automatic generation offered by
+`bindgen`. It's not clear whether this is even _possible_ but [several](https://github.com/google/autocxx)
+[projects](https://github.com/google/mosaic) are aiming in this direction.
