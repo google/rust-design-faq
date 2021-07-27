@@ -101,70 +101,110 @@ fn main() {
 You can't do this:
 
 ```rust
-# struct BirthdayCard;
+# struct BirthdayCard {}
 impl BirthdayCard {
     fn new(name: &str) -> BirthdayCard {
-#       Self
-        // ...
+#       Self{}
+      // ...
     }
 
     // Can't add more overloads:
     //
-    // fn new(name: &str, age: i32) -> BirthdayCard {
-    //   ...
-    // }
+    // fn new(name: &str, age: i32) -> BirthdayCard { ... }
     //
-    // fn new(name: &str, text: &str) -> BirthdayCard {
-    //   ...
-    // }
+    // fn new(name: &str, text: &str) -> BirthdayCard { ... }
 }
 ```
 
-Instead, use [the builder pattern](https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder). In place of overloaded constructors, add methods which take `&mut self` and return `&mut Self`:
+If you have a default constructor, and a few variants for other cases, you can simply write them as different static methods. An idiomatic way to do this is to write a `new()` constructor and then `with_foo()` constructors that apply the given "foo" when constructing.
 
 ```rust
-# struct BirthdayCard;
-impl BirthdayCard {
-    fn new(name: &str) -> BirthdayCard {
-#       Self
-        // ...
-    }
+# struct Racoon {}
+impl Racoon {
+  fn new() -> Racoon {
+#       Self{}
+      // ...
+  }
+  fn with_age(age: usize) -> Racoon {
+#       Self{}
+      // ...
+  }
+}
+```
 
-    fn age(&mut self, age: i32) -> &mut BirthdayCard {
-#       self
-        // ...
-    }
+If you have have a bunch of constructors and no default, it may make sense to instead provide a set of `new_foo()` constructors.
 
-    fn text(&mut self, text: &str) -> &mut BirthdayCard {
-#       self
+```rust
+# struct Animal {}
+impl Animal {
+  fn new_squirrel() -> Animal {
+#       Self{}
+      // ...
+  }
+  fn new_badger() -> Animal {
+#       Self{}
+      // ...
+  }
+}
+```
+
+For a more complex situation, you may use [the builder pattern](https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder). The builder has a set of methods which take `&mut self` and return `&mut Self`. Then add a `build()` that returns the final constructed object.
+
+```rust
+struct BirthdayCard {}
+
+struct BirthdayCardBuilder {}
+impl BirthdayCardBuilder {
+    fn new(name: &str) -> BirthdayCardBuilder {
+#       Self{}
       // ...
     }
+
+    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
+#         self
+        // ...
+     }
+
+    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
+#         self
+        // ...
+     }
+
+    fn build(&mut self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 }
 ```
 
 You can then [chain these](https://rust-lang.github.io/api-guidelines/type-safety.html#non-consuming-builders-preferred) into short or long constructions, passing parameters as necessary:
 
 ```rust
-# struct BirthdayCard;
-# impl BirthdayCard {
-#     fn new(name: &str) -> BirthdayCard {
-#         Self
-#         // ...
-#     }
+# struct BirthdayCard {}
 #
-#     fn age(&mut self, age: i32) -> &mut BirthdayCard {
-#         self
-#         // ...
-#     }
-#
-#     fn text(&mut self, text: &str) -> &mut BirthdayCard {
-#         self
+# struct BirthdayCardBuilder {}
+# impl BirthdayCardBuilder {
+#     fn new(name: &str) -> BirthdayCardBuilder {
+#       Self{}
 #       // ...
 #     }
+#
+#     fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
+#         self
+#         // ...
+#      }
+#
+#     fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
+#         self
+#         // ...
+#      }
+#
+#     fn build(&mut self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 # }
-# fn main() {
-let card = BirthdayCard::new("Paul").age(64).text("Happy Valentine's Day!");
-# }
+#
+ fn main() {
+    let card = BirthdayCardBuilder::new("Paul")
+        .age(64)
+        .text("Happy Valentine's Day!")
+        .build();
+}
 ```
 
 Note another advantage of builders: Overloaded constructors often don't provide all possible combinations of parameters, whereas with the builder pattern, you can combine exactly the parameters you want.
