@@ -20,6 +20,6 @@ The following awesome people helped write the answers here, and they're sometime
 
 Thanks to Alyssa Haroldsen [(@kupiakos)](https://twitter.com/kupiakos) (AH), Augie Fackler (AF), David Tolnay [(@davidtolnay)](https://twitter.com/davidtolnay) (DT), Łukasz Anforowicz (LA), Manish Goregaokar [(@ManishEarth)](https://twitter.com/ManishEarth) (MG), Mike Forster (MF), Miguel Young de la Sota [(@DrawsMiguel)](https://twitter.com/DrawsMiguel) (MY), and Tyler Mandry [(@tmandry)](https://twitter.com/tmandry) (TM).
 
-Their views have been edited and collated by Adrian Taylor [(@adehohum)](https://twitter.com/adehohum) and Martin Brænne. Any errors or misrepresentations are ours.
+Their views have been edited and collated by Adrian Taylor [(@adehohum)](https://twitter.com/adehohum), [danakj@chromium.org](mailto:danakj@chromium.org) and Martin Brænne. Any errors or misrepresentations are ours.
 
 Licensed under either of Apache License, Version 2.0 or MIT license at your option.
