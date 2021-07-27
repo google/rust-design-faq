@@ -103,7 +103,10 @@ You can't do this:
 ```rust
 struct BirthdayCard {}
 impl BirthdayCard {
-    fn new(name: &str) -> BirthdayCard { ... }
+    fn new(name: &str) -> BirthdayCard {
+      Self{}
+      // ...
+    }
 
     // Can't add more overloads:
     //
@@ -116,18 +119,32 @@ impl BirthdayCard {
 If you have a default constructor, and a few variants for other cases, you can simply write them as different static methods. An idiomatic way to do this is to write a `new()` constructor and then `with_foo()` constructors that apply the given "foo" when constructing.
 
 ```rust
+struct Racoon {}
 impl Racoon {
-  fn new() -> Racoon { ... }
-  fn with_age(age: usize) -> Racoon { ... }
+  fn new() -> Racoon {
+      Self{}
+      // ...
+  }
+  fn with_age(age: usize) -> Racoon {
+      Self{}
+      // ...
+  }
 }
 ```
 
 If you have have a bunch of constructors and no default, it may make sense to instead provide a set of `new_foo()` constructors.
 
 ```rust
+struct Animal {}
 impl Animal {
-  fn new_squirrel() -> Animal { ... }
-  fn new_badger() -> Animal { ... }
+  fn new_squirrel() -> Animal {
+      Self{}
+      // ...
+  }
+  fn new_badger() -> Animal {
+      Self{}
+      // ...
+  }
 }
 ```
 
@@ -140,37 +157,48 @@ struct BirthdayCardBuilder {}
 impl BirthdayCardBuilder {
     fn new(name: &str) -> BirthdayCardBuilder { ... }
 
-    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder { ... }
+    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
+        self
+        // ...
+     }
 
-    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder { ... }
+    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
+        self
+        // ...
+     }
 
-    fn build(self) -> BirthdayCard { ... }
+    fn build(self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 }
 ```
 
 You can then [chain these](https://rust-lang.github.io/api-guidelines/type-safety.html#non-consuming-builders-preferred) into short or long constructions, passing parameters as necessary:
 
 ```rust
-# struct BirthdayCard;
-# impl BirthdayCard {
-#     fn new(name: &str) -> BirthdayCard {
-#         Self
-#         // ...
-#     }
-#
-#     fn age(&mut self, age: i32) -> &mut BirthdayCard {
-#         self
-#         // ...
-#     }
-#
-#     fn text(&mut self, text: &str) -> &mut BirthdayCard {
-#         self
-#       // ...
-#     }
-# }
-# fn main() {
-let card = BirthdayCard::new("Paul").age(64).text("Happy Valentine's Day!");
-# }
+struct BirthdayCard {}
+
+struct BirthdayCardBuilder {}
+impl BirthdayCardBuilder {
+    fn new(name: &str) -> BirthdayCardBuilder { ... }
+
+    fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
+        self
+        // ...
+     }
+
+    fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
+        self
+        // ...
+     }
+
+    fn build(self) -> BirthdayCard { BirthdayCard { /* ... */ } }
+}
+
+ fn main() {
+    let card = BirthdayCardBuilder::new("Paul")
+        .age(64)
+        .text("Happy Valentine's Day!")
+        .build();
+}
 ```
 
 Note another advantage of builders: Overloaded constructors often don't provide all possible combinations of parameters, whereas with the builder pattern, you can combine exactly the parameters you want.
