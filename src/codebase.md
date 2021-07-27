@@ -319,11 +319,11 @@ sequenceDiagram
    participant cpp as C++ function using STL types
 ```
 
+> In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. The typical real-world binding we've converted from bindgen to cxx in my codebase has been -500 lines (mostly unsafe code) +300 lines (mostly safe code; IDL included). - DT
+
 The greatest benefit is that cxx sufficiently understands C++ STL
 object ownership norms that the generated bindings can be used from
 safe Rust code.
-
-> In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. The typical real-world binding we've converted from bindgen to cxx in my codebase has been -500 lines (mostly unsafe code) +300 lines (mostly safe code; IDL included). - DT
 
 At present, there is no established solution which combines the idiomatic, safe
 interoperability offered by `cxx` with the automatic generation offered by
