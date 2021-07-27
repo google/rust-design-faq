@@ -612,70 +612,112 @@ fn main() {
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span><span class="boring">struct BirthdayCard;
+</span><span class="boring">struct BirthdayCard {}
 </span>impl BirthdayCard {
     fn new(name: &amp;str) -&gt; BirthdayCard {
-<span class="boring">      Self
-</span>        // ...
+<span class="boring">      Self{}
+</span>      // ...
     }
 
     // Can't add more overloads:
     //
-    // fn new(name: &amp;str, age: i32) -&gt; BirthdayCard {
-    //   ...
-    // }
+    // fn new(name: &amp;str, age: i32) -&gt; BirthdayCard { ... }
     //
-    // fn new(name: &amp;str, text: &amp;str) -&gt; BirthdayCard {
-    //   ...
-    // }
+    // fn new(name: &amp;str, text: &amp;str) -&gt; BirthdayCard { ... }
 }
 <span class="boring">}
 </span></code></pre></pre>
-<p>Instead, use <a href="https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder">the builder pattern</a>. In place of overloaded constructors, add methods which take <code>&amp;mut self</code> and return <code>&amp;mut Self</code>:</p>
+<p>If you have a default constructor, and a few variants for other cases, you can simply write them as different static methods. An idiomatic way to do this is to write a <code>new()</code> constructor and then <code>with_foo()</code> constructors that apply the given &quot;foo&quot; when constructing.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span><span class="boring">struct BirthdayCard;
-</span>impl BirthdayCard {
-    fn new(name: &amp;str) -&gt; BirthdayCard {
-<span class="boring">      Self
-</span>        // ...
-    }
+</span><span class="boring">struct Racoon {}
+</span>impl Racoon {
+  fn new() -&gt; Racoon {
+<span class="boring">      Self{}
+</span>      // ...
+  }
+  fn with_age(age: usize) -&gt; Racoon {
+<span class="boring">      Self{}
+</span>      // ...
+  }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>If you have have a bunch of constructors and no default, it may make sense to instead provide a set of <code>new_foo()</code> constructors.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">struct Animal {}
+</span>impl Animal {
+  fn new_squirrel() -&gt; Animal {
+<span class="boring">      Self{}
+</span>      // ...
+  }
+  fn new_badger() -&gt; Animal {
+<span class="boring">      Self{}
+</span>      // ...
+  }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>For a more complex situation, you may use <a href="https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder">the builder pattern</a>. The builder has a set of methods which take <code>&amp;mut self</code> and return <code>&amp;mut Self</code>. Then add a <code>build()</code> that returns the final constructed object.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct BirthdayCard {}
 
-    fn age(&amp;mut self, age: i32) -&gt; &amp;mut BirthdayCard {
-<span class="boring">      self
-</span>        // ...
-    }
-
-    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut BirthdayCard {
-<span class="boring">      self
+struct BirthdayCardBuilder {}
+impl BirthdayCardBuilder {
+    fn new(name: &amp;str) -&gt; BirthdayCardBuilder {
+<span class="boring">      Self{}
 </span>      // ...
     }
+
+    fn age(&amp;mut self, age: i32) -&gt; &amp;mut BirthdayCardBuilder {
+<span class="boring">        self
+</span>        // ...
+     }
+
+    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut BirthdayCardBuilder {
+<span class="boring">        self
+</span>        // ...
+     }
+
+    fn build(&amp;mut self) -&gt; BirthdayCard { BirthdayCard { /* ... */ } }
 }
 <span class="boring">}
 </span></code></pre></pre>
 <p>You can then <a href="https://rust-lang.github.io/api-guidelines/type-safety.html#non-consuming-builders-preferred">chain these</a> into short or long constructions, passing parameters as necessary:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">struct BirthdayCard;
-</span><span class="boring">impl BirthdayCard {
-</span><span class="boring">    fn new(name: &amp;str) -&gt; BirthdayCard {
-</span><span class="boring">        Self
-</span><span class="boring">        // ...
-</span><span class="boring">    }
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct BirthdayCard {}
 </span><span class="boring">
-</span><span class="boring">    fn age(&amp;mut self, age: i32) -&gt; &amp;mut BirthdayCard {
-</span><span class="boring">        self
-</span><span class="boring">        // ...
-</span><span class="boring">    }
-</span><span class="boring">
-</span><span class="boring">    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut BirthdayCard {
-</span><span class="boring">        self
+</span><span class="boring">struct BirthdayCardBuilder {}
+</span><span class="boring">impl BirthdayCardBuilder {
+</span><span class="boring">    fn new(name: &amp;str) -&gt; BirthdayCardBuilder {
+</span><span class="boring">      Self{}
 </span><span class="boring">      // ...
 </span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    fn age(&amp;mut self, age: i32) -&gt; &amp;mut BirthdayCardBuilder {
+</span><span class="boring">        self
+</span><span class="boring">        // ...
+</span><span class="boring">     }
+</span><span class="boring">
+</span><span class="boring">    fn text(&amp;mut self, text: &amp;str) -&gt; &amp;mut BirthdayCardBuilder {
+</span><span class="boring">        self
+</span><span class="boring">        // ...
+</span><span class="boring">     }
+</span><span class="boring">
+</span><span class="boring">    fn build(&amp;mut self) -&gt; BirthdayCard { BirthdayCard { /* ... */ } }
 </span><span class="boring">}
-</span><span class="boring">fn main() {
-</span>let card = BirthdayCard::new(&quot;Paul&quot;).age(64).text(&quot;Happy Valentine's Day!&quot;);
-<span class="boring">}
-</span></code></pre></pre>
+</span><span class="boring">
+</span> fn main() {
+    let card = BirthdayCardBuilder::new(&quot;Paul&quot;)
+        .age(64)
+        .text(&quot;Happy Valentine's Day!&quot;)
+        .build();
+}
+</code></pre></pre>
 <p>Note another advantage of builders: Overloaded constructors often don't provide all possible combinations of parameters, whereas with the builder pattern, you can combine exactly the parameters you want.</p>
 <h2 id="when-must-i-use-must_use"><a class="header" href="#when-must-i-use-must_use">When must I use <code>#[must_use]</code>?</a></h2>
 <blockquote>
