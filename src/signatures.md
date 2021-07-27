@@ -105,7 +105,7 @@ You can't do this:
 impl BirthdayCard {
     fn new(name: &str) -> BirthdayCard {
 #       Self{}
-      // ...
+        // ...
     }
 
     // Can't add more overloads:
@@ -121,14 +121,14 @@ If you have a default constructor, and a few variants for other cases, you can s
 ```rust
 # struct Racoon {}
 impl Racoon {
-  fn new() -> Racoon {
+    fn new() -> Racoon {
 #       Self{}
-      // ...
-  }
-  fn with_age(age: usize) -> Racoon {
+        // ...
+    }
+    fn with_age(age: usize) -> Racoon {
 #       Self{}
-      // ...
-  }
+        // ...
+    }
 }
 ```
 
@@ -137,14 +137,14 @@ If you have have a bunch of constructors and no default, it may make sense to in
 ```rust
 # struct Animal {}
 impl Animal {
-  fn new_squirrel() -> Animal {
+    fn new_squirrel() -> Animal {
 #       Self{}
-      // ...
-  }
-  fn new_badger() -> Animal {
+        // ...
+    }
+    fn new_badger() -> Animal {
 #       Self{}
-      // ...
-  }
+        // ...
+    }
 }
 ```
 
@@ -163,12 +163,12 @@ impl BirthdayCardBuilder {
     fn age(&mut self, age: i32) -> &mut BirthdayCardBuilder {
 #         self
         // ...
-     }
+    }
 
     fn text(&mut self, text: &str) -> &mut BirthdayCardBuilder {
 #         self
         // ...
-     }
+    }
 
     fn build(&mut self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 }
@@ -199,7 +199,7 @@ You can then [chain these](https://rust-lang.github.io/api-guidelines/type-safet
 #     fn build(&mut self) -> BirthdayCard { BirthdayCard { /* ... */ } }
 # }
 #
- fn main() {
+fn main() {
     let card = BirthdayCardBuilder::new("Paul")
         .age(64)
         .text("Happy Valentine's Day!")
