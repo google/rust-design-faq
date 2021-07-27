@@ -355,6 +355,61 @@ crates optimally for your semantic needs.</p>
 <tr><td align="left"><a href="https://docs.rs/nalgebra/">nalgebra</a></td><td align="left">linear algebra</td></tr>
 <tr><td align="left"><a href="https://docs.rs/once_cell/">once_cell</a></td><td align="left">complex static data</td></tr>
 </tbody></table>
+<h2 id="how-should-i-call-c-functions-from-rust-and-vice-versa"><a class="header" href="#how-should-i-call-c-functions-from-rust-and-vice-versa">How should I call C++ functions from Rust and vice versa?</a></h2>
+<p>Use <a href="https://cxx.rs">cxx</a>.</p>
+<p>Oh, you want a justification? In that case, here's the history
+which brought us to this point.</p>
+<p>From the beginning, Rust supported calling C functions using <a href="https://doc.rust-lang.org/std/keyword.extern.html"><code>extern &quot;C&quot;</code></a>,
+<a href="https://doc.rust-lang.org/reference/type-layout.html#the-c-representation"><code>#[repr(C)]</code></a>
+and <a href="https://doc.rust-lang.org/reference/abi.html#the-no_mangle-attribute"><code>#[no_mangle]</code></a>.
+Such callable C functions had to be declared manually in Rust:</p>
+<pre class="mermaid">sequenceDiagram
+   Rust--&gt;&gt;extern: unsafe Rust function call
+   extern--&gt;&gt;C: call from Rust to C
+   participant extern as Rust unsafe extern &quot;C&quot; fn
+   participant C as Existing C function
+</pre>
+<p><a href="https://rust-lang.github.io/rust-bindgen/"><code>bindgen</code></a> was invented
+to generate these declarations automatically from existing C/C++ header
+files. It has grown to understand an astonishingly wide variety of C++
+constructs, but its generated bindings are still <code>unsafe</code> functions
+with lots of pointers involved.</p>
+<pre class="mermaid">sequenceDiagram
+   Rust--&gt;&gt;extern: unsafe Rust function call
+   extern--&gt;&gt;C: call from Rust to C++
+   participant extern as Bindgen generated bindings
+   participant C as Existing C++ function
+</pre>
+<p>Interacting with <code>bindgen</code>-generated bindings requires unsafe Rust;
+you will likely have to manually craft idiomatic safe Rust wrappers.
+This is time-consuming and error-prone.</p>
+<p><a href="https://cxx.rs">cxx</a> automates a lot of that process. Unlike <code>bindgen</code>
+it doesn't learn about functions from existing C++ headers. Instead,
+you specify cross-language interfaces in a Rust-like interface definition
+language (IDL) within your Rust file. cxx generates both C++ and Rust code
+from that IDL, marshaling data behind the scenes on both sides such that
+you can use standard language features in your code. For example, you'll
+find idiomatic Rust wrappers for <a href="https://docs.rs/cxx/1.0.50/cxx/struct.CxxString.html"><code>std::string</code></a>
+and <a href="https://docs.rs/cxx/1.0.50/cxx/struct.UniquePtr.html"><code>std::unique_ptr</code></a>
+and idiomatic C++ wrappers for <a href="https://cxx.rs/binding/slice.html">a Rust slice</a>.</p>
+<pre class="mermaid">sequenceDiagram
+   Rust--&gt;&gt;rsbindings: safe idiomatic Rust function call
+   rsbindings--&gt;&gt;cxxbindings: hidden C ABI call using marshaled data
+   cxxbindings--&gt;&gt;cpp: call to standard idiomatic C++
+   participant rsbindings as cxx-generated Rust code
+   participant cxxbindings as cxx-generated C++ code
+   participant cpp as C++ function using STL types
+</pre>
+<blockquote>
+<p>In the bindgen case even more work goes into wrapping idiomatic C++ signatures into something bindgen compatible: unique ptrs to raw ptrs, Drop impls on the Rust side, translating string types ... etc. The typical real-world binding we've converted from bindgen to cxx in my codebase has been -500 lines (mostly unsafe code) +300 lines (mostly safe code; IDL included). - DT</p>
+</blockquote>
+<p>The greatest benefit is that cxx sufficiently understands C++ STL
+object ownership norms that the generated bindings can be used from
+safe Rust code.</p>
+<p>At present, there is no established solution which combines the idiomatic, safe
+interoperability offered by <code>cxx</code> with the automatic generation offered by
+<code>bindgen</code>. It's not clear whether this is even <em>possible</em> but <a href="https://github.com/google/autocxx">several</a>
+<a href="https://github.com/google/mosaic">projects</a> are aiming in this direction.</p>
 
                     </main>
 
