@@ -201,3 +201,7 @@ match s.strip_prefix("0x") {
 ```
 
 `if let` and `matches!` are just as good as `match` but sometimes a little more concise. `cargo clippy` will usually tell you if you're using a `match` which can be simplified to one of those other two constructions.
+
+## How do I access variables from within a spawned thread?
+
+Use [`crossbeam_utils::thread::scope`](https://docs.rs/crossbeam/0.8.1/crossbeam/thread/struct.Scope.html#method.spawn).
