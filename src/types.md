@@ -62,50 +62,44 @@ flowchart LR
 Instead of this:
 
 ```rust
-struct ImportantSharedObject;
-
-struct ObjectA<'a> {
-    important_shared_object: &'a mut ImportantSharedObject,
-}
-
-impl<'a> ObjectA<'a> {
-    fn new(important_shared_object: &'a mut ImportantSharedObject) -> Self {
-        Self {
-            important_shared_object
-        }
-    }
-    fn do_something(&mut self) {
-        // act on self.important_shared_object
-    }
-}
-
+# struct ImportantSharedObject;
+# struct ObjectA<'a> {
+#    important_shared_object: &'a mut ImportantSharedObject,
+# }
+# impl<'a> ObjectA<'a> {
+#    fn new(important_shared_object: &'a mut ImportantSharedObject) -> Self {
+#        Self {
+#            important_shared_object
+#        }
+#    }
+#    fn do_something(&mut self) {
+#        // act on self.important_shared_object
+#    }
+# }
 fn main() {
     let mut shared_thingy = ImportantSharedObject;
     let mut a = ObjectA::new(&mut shared_thingy);
-    a.do_something();
+    a.do_something(); // acts on shared_thingy
 }
 ```
 
 Do this:
 
 ```rust
-struct ImportantSharedObject;
-
-struct ObjectA;
-
-impl ObjectA {
-    fn new() -> Self {
-        Self
-    }
-    fn do_something(&mut self, important_shared_object: &mut ImportantSharedObject) {
-        // act on important_shared_object
-    }
-}
-
+# struct ImportantSharedObject;
+# struct ObjectA;
+# impl ObjectA {
+#    fn new() -> Self {
+#        Self
+#    }
+#    fn do_something(&mut self, important_shared_object: &mut ImportantSharedObject) {
+#        // act on important_shared_object
+#    }
+# }
 fn main() {
     let mut shared_thingy = ImportantSharedObject;
     let mut a = ObjectA::new();
-    a.do_something(&mut shared_thingy);
+    a.do_something(&mut shared_thingy); // acts on shared_thingy
 }
 ```
 
@@ -116,25 +110,22 @@ hundred function parameters. So it's usual to bundle them up into
 a context structure which can be passed into each function call:
 
 ```rust
-struct ImportantSharedObject;
-struct AnotherImportantObject;
-
+# struct ImportantSharedObject;
+# struct AnotherImportantObject;
 struct Ctx<'a> {
     important_shared_object: &'a mut ImportantSharedObject,
     another_important_object: &'a mut AnotherImportantObject,
 }
 
-struct ObjectA;
-
-impl ObjectA {
-    fn new() -> Self {
-        Self
-    }
-    fn do_something(&mut self, ctx: &mut Ctx) {
-        // act on ctx.important_shared_object and ctx.another_important_thing
-    }
-}
-
+# struct ObjectA;
+# impl ObjectA {
+#    fn new() -> Self {
+#        Self
+#    }
+#    fn do_something(&mut self, ctx: &mut Ctx) {
+#        // act on ctx.important_shared_object and ctx.another_important_thing
+#    }
+# }
 fn main() {
     let mut shared_thingy = ImportantSharedObject;
     let mut another_thingy = AnotherImportantObject;
@@ -143,7 +134,7 @@ fn main() {
         another_important_object: &mut another_thingy,
     };
     let mut a = ObjectA::new();
-    a.do_something(&mut ctx);
+    a.do_something(&mut ctx); // acts on both the shared thingies
 }
 ```
 
