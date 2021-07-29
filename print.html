@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Questions about your types</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Questions about your APIs</div></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Questions about your processes</div></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Questions about your APIs</div></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Questions about your processes</div></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -766,6 +766,161 @@ it should take <code>self</code> by value. Examples:</p>
 <li>Closing a file and returning a result code.</li>
 <li>A builder-pattern object which spits out the thing it was building. (<a href="https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate">Example</a>).</li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-types"><a class="header" href="#questions-about-your-types">Questions about your types</a></h1>
+<h2 id="my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do"><a class="header" href="#my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do">My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?</a></h2>
+<p>It's common in C++ to have a class that contain mutable references to other
+objects; the class mutates those objects to do its work. Often, there
+are several classes that all hold a mutable reference to the same object. Here
+is a diagram that illustrates this:</p>
+<pre class="mermaid">flowchart LR
+    subgraph Shared functionality
+    important[Important Shared Object]
+    end
+    subgraph ObjectA
+    methodA[Method]
+    refa[Mutable Reference]--&gt;important
+    methodA-. Acts on shared object.-&gt;important
+    end
+    subgraph ObjectB
+    refb[Mutable Reference]--&gt;important
+    methodB[Method]
+    methodB-. Acts on shared object.-&gt;important
+    end
+    main --&gt; ObjectA
+    main --&gt; ObjectB
+    main-. Calls .-&gt; methodA
+    main-. Calls .-&gt; methodB
+</pre>
+<p>In Rust, you can't have multiple mutable references to a shared object, so what
+do you do?</p>
+<p>First of all, consider moving behavior out of your types. (See
+<a href="./codebase.html#the-c-observer-pattern-is-hard-in-rust-what-to-do">the answer about the observer pattern</a> and especially
+<a href="./codebase.html#option-2-drive-the-objects-from-the-code-not-the-other-way-round">the second option described there</a>.)</p>
+<p>Even in Rust, though, it's still often the best choice to make complex behavior
+part of the type within <code>impl</code> blocks. You can still do that - but don't
+<em>store</em> references. Instead, pass them into each function call.</p>
+<pre class="mermaid">flowchart LR
+    subgraph Shared functionality
+    important[Important Shared Object]
+    end
+    subgraph ObjectA
+    methodA[Method]
+    methodA-. Acts on shared object.-&gt;important
+    end
+    subgraph ObjectB
+    methodB[Method]
+    methodB-. Acts on shared object.-&gt;important
+    end
+    main --&gt; ObjectA
+    main --&gt; ObjectB
+    main --&gt; important
+    main-. Passes reference to shared object.-&gt; methodA
+    main-. Passes reference to shared object.-&gt; methodB
+</pre>
+<p>Instead of this:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct ImportantSharedObject;
+</span><span class="boring">struct ObjectA&lt;'a&gt; {
+</span><span class="boring">   important_shared_object: &amp;'a mut ImportantSharedObject,
+</span><span class="boring">}
+</span><span class="boring">impl&lt;'a&gt; ObjectA&lt;'a&gt; {
+</span><span class="boring">   fn new(important_shared_object: &amp;'a mut ImportantSharedObject) -&gt; Self {
+</span><span class="boring">       Self {
+</span><span class="boring">           important_shared_object
+</span><span class="boring">       }
+</span><span class="boring">   }
+</span><span class="boring">   fn do_something(&amp;mut self) {
+</span><span class="boring">       // act on self.important_shared_object
+</span><span class="boring">   }
+</span><span class="boring">}
+</span>fn main() {
+    let mut shared_thingy = ImportantSharedObject;
+    let mut a = ObjectA::new(&amp;mut shared_thingy);
+    a.do_something(); // acts on shared_thingy
+}
+</code></pre></pre>
+<p>Do this:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct ImportantSharedObject;
+</span><span class="boring">struct ObjectA;
+</span><span class="boring">impl ObjectA {
+</span><span class="boring">   fn new() -&gt; Self {
+</span><span class="boring">       Self
+</span><span class="boring">   }
+</span><span class="boring">   fn do_something(&amp;mut self, important_shared_object: &amp;mut ImportantSharedObject) {
+</span><span class="boring">       // act on important_shared_object
+</span><span class="boring">   }
+</span><span class="boring">}
+</span>fn main() {
+    let mut shared_thingy = ImportantSharedObject;
+    let mut a = ObjectA::new();
+    a.do_something(&amp;mut shared_thingy); // acts on shared_thingy
+}
+</code></pre></pre>
+<p>(Happily this also gets rid of named lifetime parameters.)</p>
+<p>If you have a hundred such shared objects, you probably don't want a
+hundred function parameters. So it's usual to bundle them up into
+a context structure which can be passed into each function call:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct ImportantSharedObject;
+</span><span class="boring">struct AnotherImportantObject;
+</span>struct Ctx&lt;'a&gt; {
+    important_shared_object: &amp;'a mut ImportantSharedObject,
+    another_important_object: &amp;'a mut AnotherImportantObject,
+}
+
+<span class="boring">struct ObjectA;
+</span><span class="boring">impl ObjectA {
+</span><span class="boring">   fn new() -&gt; Self {
+</span><span class="boring">       Self
+</span><span class="boring">   }
+</span><span class="boring">   fn do_something(&amp;mut self, ctx: &amp;mut Ctx) {
+</span><span class="boring">       // act on ctx.important_shared_object and ctx.another_important_thing
+</span><span class="boring">   }
+</span><span class="boring">}
+</span>fn main() {
+    let mut shared_thingy = ImportantSharedObject;
+    let mut another_thingy = AnotherImportantObject;
+    let mut ctx = Ctx {
+        important_shared_object: &amp;mut shared_thingy,
+        another_important_object: &amp;mut another_thingy,
+    };
+    let mut a = ObjectA::new();
+    a.do_something(&amp;mut ctx); // acts on both the shared thingies
+}
+</code></pre></pre>
+<pre class="mermaid">flowchart LR
+    subgraph Shared functionality
+    important[Important Shared Object]
+    end
+    subgraph Context
+    refa[Mutable Reference]--&gt;important
+    end
+    subgraph ObjectA
+    objectA[Object A]
+    methodA[Method]
+    methodA-. Acts on shared object.-&gt;important
+    end
+    subgraph ObjectB
+    objectB[Object B]
+    methodB[Method]
+    methodB-. Acts on shared object.-&gt;important
+    end
+    main --&gt; objectA
+    main --&gt; objectB
+    main --&gt; Context
+    main-. Passes context.-&gt; methodA
+    main-. Passes context.-&gt; methodB
+</pre>
+<p>Even simpler: just put all the data directly into <code>Ctx</code>. But the key point
+is that this context object is passed around into just about all function calls
+rather than being stored anywhere, thus negating any borrowing/lifetime concerns.</p>
+<p>This pattern can be seen in <a href="https://github.com/rust-lang/rust-bindgen/blob/271eeb0782d34942267ceabcf5f1cf118f0f5842/src/ir/context.rs#L308">bindgen</a>,
+for example.</p>
+<blockquote>
+<p>Split out borrowing concerns from the object concerns. - MG</p>
+</blockquote>
+<p>To generalize this idea, try to avoid storing references to anything that might
+need to be changed. Instead take those things as parameters. For instance
+<code>petgraph</code> <a href="https://docs.rs/petgraph/0.6.0/petgraph/visit/trait.Walker.html">takes the entire graph as context to a <code>Walker</code> object</a>,
+such that the graph can be changed while you're walking it.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-whole-codebase"><a class="header" href="#questions-about-your-whole-codebase">Questions about your whole codebase</a></h1>
 <h2 id="the-c-observer-pattern-is-hard-in-rust-what-to-do"><a class="header" href="#the-c-observer-pattern-is-hard-in-rust-what-to-do">The C++ observer pattern is hard in Rust. What to do?</a></h2>
 <p>The C++ observer pattern usually means that there are broadcasters sending messages to consumers:</p>
