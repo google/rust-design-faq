@@ -523,6 +523,8 @@ let port_number = port_number.parse::&lt;u16&gt;().unwrap();
 </span><span class="boring">}
 </span></code></pre></pre>
 <p><code>if let</code> and <code>matches!</code> are just as good as <code>match</code> but sometimes a little more concise. <code>cargo clippy</code> will usually tell you if you're using a <code>match</code> which can be simplified to one of those other two constructions.</p>
+<h2 id="how-do-i-access-variables-from-within-a-spawned-thread"><a class="header" href="#how-do-i-access-variables-from-within-a-spawned-thread">How do I access variables from within a spawned thread?</a></h2>
+<p>Use <a href="https://docs.rs/crossbeam/0.8.1/crossbeam/thread/struct.Scope.html#method.spawn"><code>crossbeam_utils::thread::scope</code></a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-function-signatures"><a class="header" href="#questions-about-your-function-signatures">Questions about your function signatures</a></h1>
 <h2 id="should-i-return-an-iterator-or-a-collection"><a class="header" href="#should-i-return-an-iterator-or-a-collection">Should I return an iterator or a collection?</a></h2>
 <blockquote>
