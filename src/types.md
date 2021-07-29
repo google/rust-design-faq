@@ -1,10 +1,11 @@
 # Questions about your types
 
-## My 'class' needs references to lots of other things in order to do its job, and that conflicts with other things which also hold similar references. What do I do?
+## My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?
 
-It's common in C++ to have objects which need to mutate other objects to get
-their work done. Those other objects may be accessed by several different
-objects.
+It's common in C++ to have a class that contain mutable references to other
+objects; the class mutates those objects to do its work. Often, there
+are several classes that all hold a mutable reference to the same object. Here
+is a diagram that illustrates this:
 
 ```mermaid
 flowchart LR
@@ -27,15 +28,16 @@ flowchart LR
     main-. Calls .-> methodB
 ```
 
-You can't have multiple mutable references to a shared object, so what do you do?
+In Rust, you can't have multiple mutable references to a shared object, so what
+do you do?
 
 First of all, consider moving behavior out of your types. (See
 [the answer about the observer pattern](./codebase.md#the-c-observer-pattern-is-hard-in-rust-what-to-do) and especially
 [the second option described there](./codebase.md#option-2-drive-the-objects-from-the-code-not-the-other-way-round).)
 
-Even in Rust, though, it's still often the best choice to have complex
-behavior as part of types within `impl` blocks. You can still do that -
-but don't _store_ references. Instead, pass them into each function call.
+Even in Rust, though, it's still often the best choice to make complex behavior
+part of the type within `impl` blocks. You can still do that - but don't
+_store_ references. Instead, pass them into each function call.
 
 ```mermaid
 flowchart LR
@@ -57,7 +59,7 @@ flowchart LR
     main-. Passes reference to shared object.-> methodB
 ```
 
-Instead of:
+Instead of this:
 
 ```rust
 struct ImportantSharedObject;
@@ -107,7 +109,7 @@ fn main() {
 }
 ```
 
-(happily this also gets rid of named lifetime parameters.)
+(Happily this also gets rid of named lifetime parameters.)
 
 If you have a hundred such shared objects, you probably don't want a
 hundred function parameters. So it's usual to bundle them up into
@@ -174,10 +176,12 @@ Even simpler: just put all the data directly into `Ctx`. But the key point
 is that this context object is passed around into just about all function calls
 rather than being stored anywhere, thus negating any borrowing/lifetime concerns.
 
-This pattern can be seen in, for example, [bindgen](https://github.com/rust-lang/rust-bindgen/blob/271eeb0782d34942267ceabcf5f1cf118f0f5842/src/ir/context.rs#L308).
+This pattern can be seen in [bindgen](https://github.com/rust-lang/rust-bindgen/blob/271eeb0782d34942267ceabcf5f1cf118f0f5842/src/ir/context.rs#L308),
+for example.
 
 > Split out borrowing concerns from the object concerns. - MG
 
-(To generalize this idea, try to avoid storing references to anything that might
+To generalize this idea, try to avoid storing references to anything that might
 need to be changed. Instead take those things as parameters. For instance
-`petgraph` [takes the entire graph as context to a `Walker` object](https://docs.rs/petgraph/0.6.0/petgraph/visit/trait.Walker.html), such that the graph can be changed whilst you're walking it.)
+`petgraph` [takes the entire graph as context to a `Walker` object](https://docs.rs/petgraph/0.6.0/petgraph/visit/trait.Walker.html),
+such that the graph can be changed while you're walking it.
