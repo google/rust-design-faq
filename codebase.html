@@ -306,7 +306,7 @@ impl Drop for SharedMutableGoatLock {
 <p>If arenas still sound like a nasty workaround, consider that you might choose an arena anyway for other reasons:</p>
 <ul>
 <li>All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. <a href="https://docs.rs/bumpalo/3.6.1/bumpalo/">Bumpalo</a> formalizes this.</li>
-<li>The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (<code>\</code>arena` for example), making the provenance of those references very clear.</li>
+<li>The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (<code>'arena</code> for example), making the provenance of those references very clear.</li>
 </ul>
 <h2 id="im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe"><a class="header" href="#im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe">I'm having a miserable time making my data structure. Should I use unsafe?</a></h2>
 <p>Low-level data structures are <em>hard</em> in Rust. Arguably, Rust merely makes plain
