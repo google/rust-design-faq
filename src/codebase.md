@@ -200,7 +200,7 @@ Arenas are often purely additive, which means that you can add entries but not d
 If arenas still sound like a nasty workaround, consider that you might choose an arena anyway for other reasons:
 
 * All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. [Bumpalo](https://docs.rs/bumpalo/3.6.1/bumpalo/) formalizes this.
-* The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (`\`arena` for example), making the provenance of those references very clear.
+* The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (`'arena` for example), making the provenance of those references very clear.
 
 ## I'm having a miserable time making my data structure. Should I use unsafe?
 
