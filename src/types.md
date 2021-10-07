@@ -179,20 +179,36 @@ such that the graph can be changed while you're walking it.
 
 ## My type needs to store arbitrary user data. What do I do instead of `void *`?
 
-Ideally, your type would know all possible types of user data that it would store.
-You'd encode this as an `enum` with variant data for each possibility. This would
-give complete compile-time type safety.
+Ideally, your type would know all possible types of user data that it could store.
+You'd represent this as an `enum` with variant data for each possibility. This
+would give complete compile-time type safety.
 
-But there may be some patterns where one area of code needs to store data that's
-defined by a totally different area of the codebase, or belongs to clients, and
-such possibilities can't be enumerated in advance. In such cases in C++ you'd
-use a `void *` and clients would downcast to get their original type back.
+But sometimes code needs to store data yet can't (or doesn't want to) depend
+on the definition: perhaps it's defined by a totally different area of the
+codebase, or belongs to clients. Such possibilities can't be enumerated in
+advance. In C++ you'd use a `void *`, and clients would downcast to get their
+original type back. (A modern C++ equivalent is `std::any`: if you've come
+across that, Rust's equivlent will seem very familiar).
 
-To do this in Rust, define a `trait` (let's call it `UserData`) and then store a
-`Box<dyn UserData>`.
+In Rust, downcasting is achieved via [`Any`](https://doc.rust-lang.org/std/any/trait.Any.html).
 
-Downcasting is achieved via [`Any`](https://doc.rust-lang.org/std/any/trait.Any.html).
-Specifically, your trait should have a method `fn as_any(&self) -> &dyn std::any::Any;`
+If you want to store _anything_:
+
+```rust
+use std::any::Any;
+
+struct MyTypeOfUserData(u8);
+
+fn main() {
+  let any_user_data: Box<dyn Any> = Box::new(MyTypeOfUserData(42));
+  let stored_value = any_user_data.downcast_ref::<MyTypeOfUserData>().unwrap().0;
+  println!("{}", stored_value);
+}
+```
+
+If you want to be more prescriptive about what can be stored, you can define
+a trait (let's call it `UserData`) and store a `Box<dyn UserData>`.
+Your trait should have a method `fn as_any(&self) -> &dyn std::any::Any;`
 Each implementation can just return `self`.
 
 Your caller can then do this:
@@ -200,6 +216,7 @@ Your caller can then do this:
 ```rust
 trait UserData {
   fn as_any(&self) -> &dyn std::any::Any;
+  // ...other trait methods which you wish to apply to any UserData...
 }
 
 struct MyTypeOfUserData(u8);
@@ -213,9 +230,9 @@ fn main() {
   let user_data: Box<dyn UserData> = Box::new(MyTypeOfUserData(42));
   // Get back to a specific type
   let stored_value = user_data.as_any().downcast_ref::<MyTypeOfUserData>().unwrap().0;
+  println!("{}", stored_value);
 }
 ```
 
-Just like in C++, there's a risk of runtime crashes from the `unwrap()` if your
-client code has become confused about what was stored here, so this pattern
-is to be avoided where possible.
+Of course, enumerating all possible stored variants remains preferable such that the
+compiler helps you to avoid runtime panics.
