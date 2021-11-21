@@ -923,6 +923,55 @@ for example.</p>
 need to be changed. Instead take those things as parameters. For instance
 <code>petgraph</code> <a href="https://docs.rs/petgraph/0.6.0/petgraph/visit/trait.Walker.html">takes the entire graph as context to a <code>Walker</code> object</a>,
 such that the graph can be changed while you're walking it.</p>
+<h2 id="my-type-needs-to-store-arbitrary-user-data-what-do-i-do-instead-of-void-"><a class="header" href="#my-type-needs-to-store-arbitrary-user-data-what-do-i-do-instead-of-void-">My type needs to store arbitrary user data. What do I do instead of <code>void *</code>?</a></h2>
+<p>Ideally, your type would know all possible types of user data that it could store.
+You'd represent this as an <code>enum</code> with variant data for each possibility. This
+would give complete compile-time type safety.</p>
+<p>But sometimes code needs to store data for which it can't depend upon
+the definition: perhaps it's defined by a totally different area of the
+codebase, or belongs to clients. Such possibilities can't be enumerated in
+advance. Until recently, the only real option in C++ was to use a <code>void *</code>
+and have clients downcast to get their original type back. Modern C++ offers
+a much better option, <code>std::any</code>; if you've come across that, Rust's equivalent
+will seem very familiar.</p>
+<p>In Rust, the <a href="https://doc.rust-lang.org/std/any/trait.Any.html"><code>Any</code></a> type
+allows you to store <em>anything</em> and retrieve it later in a type-safe fashion:</p>
+<pre><pre class="playground"><code class="language-rust">use std::any::Any;
+
+struct MyTypeOfUserData(u8);
+
+fn main() {
+  let any_user_data: Box&lt;dyn Any&gt; = Box::new(MyTypeOfUserData(42));
+  let stored_value = any_user_data.downcast_ref::&lt;MyTypeOfUserData&gt;().unwrap().0;
+  println!(&quot;{}&quot;, stored_value);
+}
+</code></pre></pre>
+<p>If you want to be more prescriptive about what can be stored, you can define
+a trait (let's call it <code>UserData</code>) and store a <code>Box&lt;dyn UserData&gt;</code>.
+Your trait should have a method <code>fn as_any(&amp;self) -&gt; &amp;dyn std::any::Any;</code>
+Each implementation can just return <code>self</code>.</p>
+<p>Your caller can then do this:</p>
+<pre><pre class="playground"><code class="language-rust">trait UserData {
+  fn as_any(&amp;self) -&gt; &amp;dyn std::any::Any;
+  // ...other trait methods which you wish to apply to any UserData...
+}
+
+struct MyTypeOfUserData(u8);
+
+impl UserData for MyTypeOfUserData {
+  fn as_any(&amp;self) -&gt; &amp;dyn std::any::Any { self }
+}
+
+fn main() {
+  // Store a generic Box&lt;dyn UserData&gt;
+  let user_data: Box&lt;dyn UserData&gt; = Box::new(MyTypeOfUserData(42));
+  // Get back to a specific type
+  let stored_value = user_data.as_any().downcast_ref::&lt;MyTypeOfUserData&gt;().unwrap().0;
+  println!(&quot;{}&quot;, stored_value);
+}
+</code></pre></pre>
+<p>Of course, enumerating all possible stored variants remains preferable such that the
+compiler helps you to avoid runtime panics.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-whole-codebase"><a class="header" href="#questions-about-your-whole-codebase">Questions about your whole codebase</a></h1>
 <h2 id="the-c-observer-pattern-is-hard-in-rust-what-to-do"><a class="header" href="#the-c-observer-pattern-is-hard-in-rust-what-to-do">The C++ observer pattern is hard in Rust. What to do?</a></h2>
 <p>The C++ observer pattern usually means that there are broadcasters sending messages to consumers:</p>
