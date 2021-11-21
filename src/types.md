@@ -176,3 +176,63 @@ To generalize this idea, try to avoid storing references to anything that might
 need to be changed. Instead take those things as parameters. For instance
 `petgraph` [takes the entire graph as context to a `Walker` object](https://docs.rs/petgraph/0.6.0/petgraph/visit/trait.Walker.html),
 such that the graph can be changed while you're walking it.
+
+## My type needs to store arbitrary user data. What do I do instead of `void *`?
+
+Ideally, your type would know all possible types of user data that it could store.
+You'd represent this as an `enum` with variant data for each possibility. This
+would give complete compile-time type safety.
+
+But sometimes code needs to store data for which it can't depend upon
+the definition: perhaps it's defined by a totally different area of the
+codebase, or belongs to clients. Such possibilities can't be enumerated in
+advance. Until recently, the only real option in C++ was to use a `void *`
+and have clients downcast to get their original type back. Modern C++ offers
+a much better option, `std::any`; if you've come across that, Rust's equivalent
+will seem very familiar.
+
+In Rust, the [`Any`](https://doc.rust-lang.org/std/any/trait.Any.html) type
+allows you to store _anything_ and retrieve it later in a type-safe fashion:
+
+```rust
+use std::any::Any;
+
+struct MyTypeOfUserData(u8);
+
+fn main() {
+  let any_user_data: Box<dyn Any> = Box::new(MyTypeOfUserData(42));
+  let stored_value = any_user_data.downcast_ref::<MyTypeOfUserData>().unwrap().0;
+  println!("{}", stored_value);
+}
+```
+
+If you want to be more prescriptive about what can be stored, you can define
+a trait (let's call it `UserData`) and store a `Box<dyn UserData>`.
+Your trait should have a method `fn as_any(&self) -> &dyn std::any::Any;`
+Each implementation can just return `self`.
+
+Your caller can then do this:
+
+```rust
+trait UserData {
+  fn as_any(&self) -> &dyn std::any::Any;
+  // ...other trait methods which you wish to apply to any UserData...
+}
+
+struct MyTypeOfUserData(u8);
+
+impl UserData for MyTypeOfUserData {
+  fn as_any(&self) -> &dyn std::any::Any { self }
+}
+
+fn main() {
+  // Store a generic Box<dyn UserData>
+  let user_data: Box<dyn UserData> = Box::new(MyTypeOfUserData(42));
+  // Get back to a specific type
+  let stored_value = user_data.as_any().downcast_ref::<MyTypeOfUserData>().unwrap().0;
+  println!("{}", stored_value);
+}
+```
+
+Of course, enumerating all possible stored variants remains preferable such that the
+compiler helps you to avoid runtime panics.
