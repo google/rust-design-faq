@@ -236,3 +236,63 @@ fn main() {
 
 Of course, enumerating all possible stored variants remains preferable such that the
 compiler helps you to avoid runtime panics.
+
+## When should I put my data in a `Box`?
+
+In C++, you often need to box things for ownership reasons, whereas in Rust
+it's typically just a performance trade-off. It's arguably premature optimization
+to use boxes unless your profiling shows a lot of memcpy of that particular
+type (or, perhaps, the relevant [clippy lint](https://rust-lang.github.io/rust-clippy/v0.0.212/index.html#large_enum_variant)
+informs you that you have a problem.)
+
+> I never box things unless it’s really big - MG
+
+Another heuristic is if part of your data structure is very rarely filled,
+in which case you may wish to `Box` it to avoid incurring an overhead for all
+other instances of the type.
+
+```rust
+# struct Humility; struct Talent; struct Ego;
+struct Popstar {
+  ego: Ego,
+  talent: Talent,
+  humility: Option<Box<Humility>>,
+}
+# fn main() {}
+```
+
+(This is one reason why people like using [anyhow](https://docs.rs/anyhow/latest/anyhow/)
+for their errors; it means the failure case in their `Result` enum is only
+a pointer wide.)
+
+Of course, Rust may require you to use a box:
+
+* if you need to `Pin` some data, typically for async Rust
+* if you otherwise have an infinitely sized data structure.
+
+but as usual, the compiler will explain very nicely.
+
+## When should my type implement `Default`?
+
+Whenever you'd provide a default constructor in C++.
+
+## When should my type implement `From`, `Into` and `TryFrom`?
+
+You should think of these as equivalent to implicit conversions in C++. Just
+as with C++, if there are _multiple_ ways to convert from your thing to another
+thing, don't implement these, but if there's a single obvious conversion, do.
+
+Usually, don't implement `Into` but instead implement `From`.
+
+## When should my type implement `AsRef`?
+
+If you have a type which contains another type, provide `AsRef` especially
+so that people can clone the inner type. It's good practice to provide explicit
+versions as well (for example, `String` implements `AsRef<str>` but also
+provides `.as_str()`.)
+
+## I miss operator overloading! What do I do?
+
+Implement the standard traits instead. This has equivalent effect in that
+folks will be able to use your type in a standard Rusty way without knowing
+too much special about your type.

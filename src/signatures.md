@@ -264,3 +264,72 @@ it should take `self` by value. Examples:
 
 * Closing a file and returning a result code.
 * A builder-pattern object which spits out the thing it was building. ([Example](https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate)).
+
+## How do I take a thing, and a reference to something within that thing?
+
+For example, suppose you want to give all of your dogs to your friend, yet also
+tell your friend which one of the dogs is the Best Boy or Girl.
+
+A common use case is if you find yourself destructuring a complex data
+structure to work out what to do with it, then you want to pass the whole thing
+into another function but you don't want to have to repeat all that
+destructuring work.
+
+Generally this is an indication that your types are not split down in the correct
+way:
+
+> This is a decomposition problem. Once you’ve found the correct decomposition, everything
+> else just works. The code almost writes itself. - AF.
+
+If you must do this though, perhaps you can pass the thing, and a closure
+to extract part of the thing.
+
+## When should I return `impl Trait`?
+
+Your main consideration should be API stability. If your caller doesn't
+_need_ to know the concrete implementation type, then don't tell it. That
+gives you flexibility to change your implementation in future without breaking
+compatibility.
+
+Note [Hyrum's Law](https://www.hyrumslaw.com/)!
+
+Using `impl Trait` doesn't solve _all_ possible API stability concerns, because
+even `impl Trait` leaks auto-traits such as `Send` and `Sync`.
+
+## I miss function overloading! What do I do?
+
+Use a trait to implement the behavior you used to have.
+
+For example, in C++:
+
+```cpp
+class Dog {
+public:
+  void eat(Dogfood);
+  void eat(DeliveryPerson);
+};
+```
+
+In Rust you might express this as:
+
+```rust
+trait Edible {
+};
+
+struct Dog;
+
+impl Dog {
+  fn eat(edible: impl Edible) {
+    // ...
+  }
+}
+
+struct Dogfood;
+struct DeliveryPerson;
+
+impl Edible for Dogfood {}
+impl Edible for DeliveryPerson {}
+```
+
+This gives your caller all the convenience they want, though may increase
+work for you as the implementer.
