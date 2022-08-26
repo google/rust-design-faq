@@ -293,3 +293,14 @@ At present, there is no established solution which combines the idiomatic, safe
 interoperability offered by `cxx` with the automatic generation offered by
 `bindgen`. It's not clear whether this is even _possible_ but [several](https://github.com/google/autocxx)
 [projects](https://github.com/google/mosaic) are aiming in this direction.
+
+## I'm getting a lot of binary bloat.
+
+In Rust you have a free choice between `impl Trait` and `dyn Trait`. See
+[signatures.md#When_should_I_take_or_return_dyn_Trait]. `impl Trait` tends
+to be the default, and results in large binaries as much code can be duplicated.
+If you have this problem, consider using `dyn Trait`. Other options include
+the 'thin template pattern' (an example is `serde_json` where the code to read
+from [a string and a slice](https://github.com/serde-rs/json/blob/master/src/read.rs#L172)
+would be duplicated entirely, but instead one delegates to the other and
+requests slightly different behavior.)
