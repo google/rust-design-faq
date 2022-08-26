@@ -238,6 +238,11 @@ You might argue that this dependency on third-party crates is concerning
 from a supply-chain security point of view. Your author would agree, but
 it's just the way you do things in Rust. Stop creating your own data structures.
 
+Then again:
+
+> it’s equally miserable to implement performant, low-level data structures in
+> C++; you’ll be specializing on lots of things like is_trivially_movable etc. - MY.
+
 ## Should I have a few big crates or lots of small ones?
 
 In the past, it was recommended to have small crates to get optimal build time.

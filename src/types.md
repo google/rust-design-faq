@@ -469,8 +469,24 @@ impl PlantState {
 // state machine or things are not looking rosy
 ```
 
-
 ## When should I use `Rc` versus `Arc`?
 
 Never expose `Rc` in APIs. `Arc` is the right choice nearly always. (You
 might want to look at the [archery crate](https://docs.rs/archery/latest/archery/)).
+
+## What should I do instead of inheritance?
+
+Use composition. Sometimes this results in more boilerplate, but it avoids
+a raft of complexity.
+
+Specifically, for example:
+* you might include the "superclass" struct as a member of the subclass
+  struct;
+* you might use an enum with different variants for the different possible
+  "subclasses".
+
+Usually the answer is obvious: it's unlikely that your Rust code is structured
+in such a way that inheritance would be a good fit anyway.
+
+> I've only missed inheritance when actually implementing languages which
+> themselves have inheritance - MG.
