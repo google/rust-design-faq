@@ -547,3 +547,19 @@ Then again:
 
 > it’s equally miserable to implement performant, low-level data structures in
 > C++; you’ll be specializing on lots of things like is_trivially_movable etc. - MY.
+
+## I nevertheless have to write my own data structure. Should I use unsafe?
+
+I'm sorry to hear that.
+
+Some suggestions:
+
+* Use `Rc`, weak etc. until you really can't.
+* Even if you can't use a pre-existing crate for the whole data structure,
+  perhaps you can use a crate to avoid the `unsafe` bits (for example
+  [rental](https://docs.rs/rental/latest/rental/))
+* Bear in mind that refactoring Rust is generally safer than refactoring
+  C++ (because the compiler will point out a higher proportion of your
+  mistakes) so a wise strategy might be to start with a fully-safe, but slow,
+  version, establish solid tests, and then reach for unsafe.
+
