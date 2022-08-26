@@ -307,7 +307,7 @@ not that's the reason, experienced Rustaceans usually start with `impl`:
 > It's best practice to start with monomorphization and move to `dyn`... - MG
 
 The main cost of monomorphization is larger binaries. There are cases where
-large amounts of code can end up being duplicated (the marvellous [serde](https://docs.google.com/presentation/d/1_t0AB2jU-2jgewedw6BVN0ORSjzppT5u5WQtoto1DTg/edit?usp=sharing)
+large amounts of code can end up being duplicated (the marvellous [serde](https://serde.rs/)
 is one).
 
 You _can_ choose to do things the other way round:
