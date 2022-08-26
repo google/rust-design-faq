@@ -296,3 +296,176 @@ provides `.as_str()`.)
 Implement the standard traits instead. This has equivalent effect in that
 folks will be able to use your type in a standard Rusty way without knowing
 too much special about your type.
+
+## Should I have public fields or accessor methods?
+
+The trade-offs are similar to C++ except that Rust's pattern-matching makes it
+very convenient to match on fields, so within a realm of code that you own you
+may bias towards having more public fields than you're used to. As with C++,
+this can give you a future compatibility burden.
+
+## When should I use a newtype wrapper?
+
+The [newtype wrapper pattern](https://rust-unofficial.github.io/patterns/patterns/behavioural/newtype.html)
+uses Rust's type systems to enforce extra behavior without necessarily changing
+the underlying representation.
+
+```rust
+# fn get_rocket_length() -> Inches { Inches(7) }
+struct Inches(u32);
+struct Centimeters(u32);
+
+fn build_mars_orbiter() {
+  let rocket_length: Inches = get_rocket_length();
+  // mate_to_orbiter(rocket_length); // does not compile because this takes cm
+}
+```
+
+Other examples that have been used:
+* An IP address which is guaranteed not to be localhost;
+* Non-zero numbers;
+* IDs which are guaranteed to be unique
+
+Such new types typically need a lot of boilerplate, especially to implement
+the traits which users of your type would expect to find. On the other hand,
+they allow you to use Rust's type system to statically prevent logic bugs.
+
+A heuristic: if there are some invariants you'd be checking for at runtime,
+see if you can use a newtype wrapper to do it statically instead. Although it
+may be more code to start with, you'll save the effort of finding and fixing
+logic bugs later.
+
+## How else can I use Rust's type system to avoid high-level logic bugs?
+
+Yes.
+
+*Zero sized types* ("ZSTs"). Often used as capability tokens - you can statically
+prove that code exclusively has the right to do something. For example:
+
+```rust
+struct PermissionToUseCamera;
+
+fn prompt_user_for_permission() -> Option<PermissionToUseCamera> {
+  // ...
+#  None
+}
+
+// Statically proven that no code calls this unless it's attempted to
+// get permission and dealt with the consequences of rejection.
+fn take_photo(permission: &PermissionToUseCamera) {
+  // ...
+}
+
+//fn main() { }
+```
+
+ZSTs can also be used to demonstrate _exclusive_ access to some resource.
+
+```rust
+struct RobotArmAccessToken;
+
+fn move_arm(token: &mut RobotArmAccessToken, x: u32, y: u32, z: u32) {
+  // ...
+}
+
+fn attach_car_door(token: &mut RobotArmAccessToken) {
+  move_arm(token, 3, 4, 6);
+  move_arm(token, 5, 3, 6);
+}
+
+fn install_windscreen(token: &mut RobotArmAccessToken) {
+  move_arm(token, 7, 8, 2);
+  move_arm(token, 1, 2, 3);
+}
+
+fn main() {
+  let mut token = RobotArmAccessToken; // ensure only one exists
+  attach_car_door(&mut token);
+  install_windscreen(&mut token);
+}
+```
+
+(the type system would prevent these operations happening in parallel).
+
+*Marker traits*. Indicate that a type meets certain invariants, so subsequent
+users of that type don't need to check at runtime. A common example is to
+indicate that a type is safe to serialize into some bytestream.
+
+*Enums as state machines*. Each enum variant is a state and stores data
+associated with that state. There simply is no possibility that the data can
+get out of sync with the state.
+
+```rust
+enum ElectionState {
+  RaisingDonations { amount_raised: u32 },
+  DoingTVInterviews { interviews_done: u16 },
+  Voting { votes_for_me: u64, votes_for_opponent: u64 },
+  Elected,
+  NotElected,
+};
+```
+
+(A more heavyweight approach here is to define types for each state, and
+allow valid state transitions by taking the previous state by-value and
+returning the next state by-value.)
+
+```rust
+struct Seed { water_available: u32 }
+struct Growing { water_available: u32, sun_available: u32 }
+struct Flowering;
+struct Dead;
+
+enum PlantState {
+  Seed(Seed),
+  Growing(Growing),
+  Flowering(Flowering),
+  Dead(Dead)
+}
+
+impl Seed {
+  fn advance(self) -> PlantState {
+    if self.water_available > 3 {
+      PlantState::Growing(Growing { water_available: self.water_available, sun_available: 0 })
+    } else {
+      PlantState::Dead(Dead)
+    }
+  }
+}
+
+impl Growing {
+  fn advance(self) -> PlantState {
+    if self.water_available > 3 && self.sun_available > 3 {
+      PlantState::Flowering(Flowering)
+    } else {
+      PlantState::Dead(Dead)
+    }
+  }
+}
+
+impl Flowering {
+  fn advance(self) -> PlantState {
+    PlantState::Dead(Dead)
+  }
+}
+
+impl Dead {
+  fn advance(self) -> PlantState {
+    PlantState::Dead(Dead)
+  }
+}
+
+impl PlantState {
+  fn advance(self) -> Self {
+    match self {
+      Self::Seed(seed) => seed.advance(),
+      Self::Growing(growing) => growing.advance(),
+      Self::Flowering(flowering) => flowering.advance(),
+      Self::Dead(dead) => dead.advance(),
+    }
+  }
+}
+
+// we should probably find a way to inject some sun and water into this
+// state machine or things are not looking rosy
+```
+
