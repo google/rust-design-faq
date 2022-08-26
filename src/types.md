@@ -469,3 +469,8 @@ impl PlantState {
 // state machine or things are not looking rosy
 ```
 
+
+## When should I use `Rc` versus `Arc`?
+
+Never expose `Rc` in APIs. `Arc` is the right choice nearly always. (You
+might want to look at the [archery crate](https://docs.rs/archery/latest/archery/)).

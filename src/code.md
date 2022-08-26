@@ -204,4 +204,49 @@ match s.strip_prefix("0x") {
 
 ## How do I access variables from within a spawned thread?
 
-Use [`crossbeam_utils::thread::scope`](https://docs.rs/crossbeam/0.8.1/crossbeam/thread/struct.Scope.html#method.spawn).
+Use [`std::thread::scope`](https://doc.rust-lang.org/nightly/std/thread/fn.scope.html).
+
+## When should I use runtime checks vs jumping through hoops to do static checks?
+
+Everyone learns Rust a different way, but it's said that some people reach a
+point of "trait mania" where they try to encode _too much_ via the type
+system, and get in a mess. So, in learning Rust, you will want to strike a
+balance between runtime checks (easy) or static compile-time checks (more
+efficient but requires deeper understanding.)
+
+> It’s very personal - some people learn better if they opt out of
+> language features, others not - MG.
+
+Some heuristics for how to keep things simple during the beginning of your
+Rust journey:
+
+* It's OK to start with lots of `.unwrap()`, cloning and `Rc`.
+* Start to use more advanced language features when you feel annoyed with
+  the amount of boilerplate. (As an expert, you'll switch to a different
+  strategy which is to consider the virality of your choices through the
+  codebase.)
+* Don't use traits until you have to. You might (for instance) need to use
+  a trait to make some code unit testable, but overoptimizing for that too
+  soon is a mistake. Some say that it's wise initially to avoid defining
+  any new traits at all.
+* Try to keep types smaller.
+
+Specifically on reference counting,
+
+> If using Rc means you can avoid a lifetime parameter which is in half the
+> APIs in the project, that’s a very reasonable choice. If it avoids a single
+> lifetime somewhere, probably not a good idea. But measure before deciding. - MG
+
+If you want to bail out of the complexity of static checks, which runtime checks
+are OK?
+
+* `unwrap()` and `Option` is mostly fine.
+* `Rc` is also fine in most cases.
+* Extensive use of `clone()` is fine but will have a performance impact.
+* `Cell` is regarded as a code smell and suggests you don't understand your
+  lifetimes - it should be used sparingly.
+* `unsafe` is definitely not OK. It's harder to write `unsafe` Rust than to write
+  C or C++, because Rust has additional aliasing rules. If you're reaching for
+  `unsafe` to work around the complexity of Rust's static type system, as a
+  relative Rust beginner, please reconsider and look into the other options
+  listed above.
