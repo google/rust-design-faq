@@ -284,6 +284,16 @@ thing, don't implement these, but if there's a single obvious conversion, do.
 
 Usually, don't implement `Into` but instead implement `From`.
 
+## How should I expose constructors?
+
+See the previous two answers: where it's simple and obvious, use the standard
+traits to make your object behavior predictable.
+
+If you need to go beyond that, remember you've got a couple of extra toys in Rust:
+
+* A "constructor" could return a `Result<Self>`
+* Your constructors can have names, e.g. `with_capacity`, `pin`
+
 ## When should my type implement `AsRef`?
 
 If you have a type which contains another type, provide `AsRef` especially
