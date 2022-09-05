@@ -272,35 +272,6 @@ Of course, Rust may require you to use a box:
 
 but as usual, the compiler will explain very nicely.
 
-## When should my type implement `Default`?
-
-Whenever you'd provide a default constructor in C++.
-
-## When should my type implement `From`, `Into` and `TryFrom`?
-
-You should think of these as equivalent to implicit conversions in C++. Just
-as with C++, if there are _multiple_ ways to convert from your thing to another
-thing, don't implement these, but if there's a single obvious conversion, do.
-
-Usually, don't implement `Into` but instead implement `From`.
-
-## How should I expose constructors?
-
-See the previous two answers: where it's simple and obvious, use the standard
-traits to make your object behavior predictable.
-
-If you need to go beyond that, remember you've got a couple of extra toys in Rust:
-
-* A "constructor" could return a `Result<Self>`
-* Your constructors can have names, e.g. `with_capacity`, `pin`
-
-## When should my type implement `AsRef`?
-
-If you have a type which contains another type, provide `AsRef` especially
-so that people can clone the inner type. It's good practice to provide explicit
-versions as well (for example, `String` implements `AsRef<str>` but also
-provides `.as_str()`.)
-
 ## I miss operator overloading! What do I do?
 
 Implement the standard traits instead. This has equivalent effect in that
