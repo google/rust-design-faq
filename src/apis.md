@@ -1,5 +1,9 @@
 # Questions about designing APIs for others
 
+See also the excellent [Rust API guidelines](https://rust-lang.github.io/api-guidelines/about.html).
+The document you're reading aims to provide extra hints which may be especially
+useful to folk coming from C++, but that's the canonical reference.
+
 ## When should my type implement `Default`?
 
 Whenever you'd provide a default constructor in C++.
@@ -130,3 +134,32 @@ fn main() {
 
 
 ```
+
+## What should I `Derive` to make my code optimally usable?
+
+The [official guidelines say to be eager](https://rust-lang.github.io/api-guidelines/interoperability.html#types-eagerly-implement-common-traits-c-common-traits).
+
+But don't overpromise:
+
+> Equality can suddenly become expensive later - don’t make types comparable
+> unless you intend people to be able to do that. Allowing people to pattern
+> match on enums is usually better - MY.
+
+Note that [`syn` is a rare case](https://docs.rs/syn/latest/syn/) where it
+has so many types, and is so extensively depended upon by the rest of the Rust
+ecosystem, that it avoids deriving the standard traits unless explicitly
+commanded to do so via cargo feature. This is an unusual pattern and should
+not normally be followed.
+
+## How should I think about API design, differently from C++?
+
+> make the most of the fact that everything is immutable by default. It should
+> be trivially observable that most things in the program do not change - the
+> language encourages everything to be immutable - things which are mutable
+> should stick out. - AF.
+
+> think about things which should take self and return self - AF.
+
+Refactoring is less expensive in Rust than C++ due to compiler safeguards, but
+_restructuring_ is expensive in any language. Think about "one way doors"
+and "two way doors" in the design space.
