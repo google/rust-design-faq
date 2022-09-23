@@ -346,7 +346,7 @@
 <ul>
 <li>The first solution may require Rust to do array bounds checks inside each iteration of the loop, making Rust potentially slower than C++. In this sort of simple example, it likely wouldn't, but functional pipelines simply don't require bounds checks.</li>
 <li>The final container (a <code>HashSet</code> in this case) may be able to allocate roughly the right size at the outset, using the <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.size_hint">size_hint</a> of a Rust iterator.</li>
-<li>If you use iterator-style code rather than imperative code, it's more likely the Rust compiler will be able to <a href="https://www.minimalrust.com/an-adventure-in-simd/">auto-vectorize using SIMD instructions</a>.</li>
+<li>If you use iterator-style code rather than imperative code, it's more likely the Rust compiler will be able to <a href="https://medium.com/swlh/an-adventure-in-simd-b0e8db4ccca7">auto-vectorize using SIMD instructions</a>.</li>
 <li>There is no mutable state within the function. This makes it easier to verify that the code is correct and to avoid introducing bugs when changing it. In this simple example it may be obvious that calling the <code>HashSet::insert</code> is the only mutation to the set, but in more complex scenarios it is quite easy to lose the overview.</li>
 <li>And as a new arrival from C++, you may find this hard to believe: For an experienced Rustacean it'll be more readable.</li>
 </ul>
