@@ -429,27 +429,28 @@ fn make_shopping_list_e() -&gt; HashSet&lt;&amp;'static str&gt; {
 <span class="boring">}
 </span></code></pre></pre>
 <p>Here's a diagram showing how data flows in this iterator pipeline:</p>
-<pre class="mermaid">flowchart LR
-  %%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
-    Pets
-    Filter([filter by hunger])
-    Map([map to noms])
-    Meals
-    uniqueify([uniqueify])
-    shopping[Shopping list]
-    Pets ---&gt; Filter
-    Pond
-    Pond ---&gt; inhabitant
-    inhabitant[Optional pond inhabitant]
-    inhabitant ---&gt; Map
-    Filter ---&gt; Map
-    Map ---&gt; Meals
-    Meals ---&gt; uniqueify
-    uniqueify ---&gt; shopping
-</pre>
 </li>
-<li>
-<p>Here are other iterator APIs that will come in useful:</p>
+</ul>
+<pre class="mermaid">  flowchart LR
+    %%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
+      Pets
+      Filter([filter by hunger])
+      Map([map to noms])
+      Meals
+      uniqueify([uniqueify])
+      shopping[Shopping list]
+      Pets ---&gt; Filter
+      Pond
+      Pond ---&gt; inhabitant
+      inhabitant[Optional pond inhabitant]
+      inhabitant ---&gt; Map
+      Filter ---&gt; Map
+      Map ---&gt; Meals
+      Meals ---&gt; uniqueify
+      uniqueify ---&gt; shopping
+  </pre>
+<ul>
+<li>Here are other iterator APIs that will come in useful:
 <ul>
 <li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.cloned">cloned</a></li>
 <li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten">flatten</a></li>
