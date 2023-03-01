@@ -268,7 +268,9 @@ it should take `self` by value. Examples:
 ## Should I return an error, or panic?
 
 Panics should be used only for invariants, never for anything that you believe
-might happen. That's especially true for libraries.
+might happen. That's especially true [for libraries](https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell)
+- panicking (or asserting) should be reserved for the 'top level' code driving
+the application.
 
 > Libraries which panic are super-rude and I hate them - MY
 
