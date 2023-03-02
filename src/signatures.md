@@ -264,3 +264,75 @@ it should take `self` by value. Examples:
 
 * Closing a file and returning a result code.
 * A builder-pattern object which spits out the thing it was building. ([Example](https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate)).
+
+## Should I return an error, or panic?
+
+Panics should be used only for invariants, never for anything that you believe
+might happen. That's especially true [for libraries](https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell)
+- panicking (or asserting) should be reserved for the 'top level' code driving
+the application.
+
+> Libraries which panic are super-rude and I hate them - MY
+
+Even in your own application code, panicking might not be wise:
+
+> Panicking in application logic for recoverable errors makes it way harder to librarify some code - AP
+
+If you really must have an API which can panic, add a `try_` equivalent too.
+
+## What should my error type be?
+
+[Rust's `Result` type](https://doc.rust-lang.org/std/result/) is parameterized
+over an error type. What should you use?
+
+For app code, consider [anyhow](https://docs.rs/anyhow/). For library code,
+use your own `enum` of error conditions - you can use [thiserror](https://docs.rs/thiserror/)
+to make this more pleasant.
+
+## When should I take or return `dyn Trait`?
+
+In either C++ or Rust, you can choose between monomorphization (that is, building
+code multiple times for each permutation of parameter types) or dynamic dispatch (i.e.
+looking up the correct implementation using vtables).
+
+In C++ the syntax is completely different - templates vs virtual functions.
+In Rust the syntax is almost identical - in some cases it's as simple as
+exchanging the `impl` keyword with the `dyn` keyword.
+
+Given this flexibility to switch strategies, which should you start with?
+
+In both languages, monomorphization tends to result in a quicker program (partly
+due to better inlining). It's arguably true that inlining is more important in
+Rust, due to its functional nature and pervasive use of iterators. Whether or
+not that's the reason, experienced Rustaceans usually start with `impl`:
+
+> It's best practice to start with monomorphization and move to `dyn`... - MG
+
+The main cost of monomorphization is larger binaries. There are cases where
+large amounts of code can end up being duplicated (the marvellous [serde](https://serde.rs/)
+is one).
+
+You _can_ choose to do things the other way round:
+
+> ... it’s workable practice to start with `dyn` and then move to `impl` when you have problems. - MG
+
+`dyn` can be awkward, and potentially expensive in different ways:
+
+> One thing to note about pervasive `dyn` is that because it unsizes the types it wraps, you need to box it if you want to store it by value. You end up with a good bit more allocator pressure if you try to have `dyn` field types. - AP
+
+## `<'a>`I seem to have lots of named lifetimes. Am `<'b>`I doing something wrong?
+
+Some say that if you have a significant number of named lifetimes, you're
+overcomplicating things.
+
+There are some scenarios where multiple named lifetimes make perfect sense - for example
+if you're dealing with an arena, or major phases of a process (the Rust compiler
+has `'gcx` and `'tcx` lifetimes relating to the output of certain compile phases.)
+
+But otherwise, it may be that you've got lifetimes because you're trying _too
+hard_ to avoid a copy. You may be better off simply switching to runtime
+checking (e.g. `Rc`, `Arc`) or even cloning.
+
+Are named lifetimes even a "code smell"?
+
+> My experience has been that the extent to which they're a smell varies a good bit based on the programmer's experience level, which has led me towards increased skepticism over time. Lots of people learning Rust have experienced the pain of first not wanting to `.clone()` something, immediately putting lifetimes everywhere, and then feeling the pain of lifetime subtyping and variance. I don't think they're nearly as odorous as unsafe, for example, but treating them as a bit of a smell does I think lead to code that's easier to read for a newcomer and to refactor around the stack. - AP
