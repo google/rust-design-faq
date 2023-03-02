@@ -215,12 +215,12 @@ balance between runtime checks (easy) or static compile-time checks (more
 efficient but requires deeper understanding.)
 
 > It’s very personal - some people learn better if they opt out of
-> language features, others not - MG.
+> language features, others not. - MG
 
 Some heuristics for how to keep things simple during the beginning of your
 Rust journey:
 
-* It's OK to start with lots of `.unwrap()`, cloning and `Rc`.
+* It's OK to start with lots of `.unwrap()`, cloning and `Arc`/`Rc`.
 * Start to use more advanced language features when you feel annoyed with
   the amount of boilerplate. (As an expert, you'll switch to a different
   strategy which is to consider the virality of your choices through the
@@ -241,7 +241,7 @@ If you want to bail out of the complexity of static checks, which runtime checks
 are OK?
 
 * `unwrap()` and `Option` is mostly fine.
-* `Rc` is also fine in most cases.
+* `Arc` and `Rc` is also fine in most cases.
 * Extensive use of `clone()` is fine but will have a performance impact.
 * `Cell` is regarded as a code smell and suggests you don't understand your
   lifetimes - it should be used sparingly.
@@ -250,3 +250,8 @@ are OK?
   `unsafe` to work around the complexity of Rust's static type system, as a
   relative Rust beginner, please reconsider and look into the other options
   listed above.
+
+Doing lifetime magic — where "magic" means annotating a function or complex
+type with more than 1 lifetime, or other wizardry — is often an optimization
+that you can defer until later. In the beginning, and when writing small
+programs that you only intend to use a few times ('scripts'), copying is fine.

@@ -24,7 +24,7 @@ traits to make your object behavior predictable.
 If you need to go beyond that, remember you've got a couple of extra toys in Rust:
 
 * A "constructor" could return a `Result<Self>`
-* Your constructors can have names, e.g. `with_capacity`, `pin`
+* Your constructors can have names, e.g. `Vec::with_capacity`, `Box::pin`
 
 ## When should my type implement `AsRef`?
 
@@ -36,17 +36,17 @@ provides `.as_str()`.)
 ## When should I implement `Copy`?
 
 > Anything that is integer-like or reference-like should be `Copy`; other things
-> shouldn’t - MY
+> shouldn’t. - MY
 
-> When it’s efficient and when it’s an API contact you’re willing to uphold - AH.
+> When it's efficient and when it’s an API contact you're willing to uphold. - AH
 
 Generally speaking, types which are plain-old-data can be `Copy`. Anything
 more nuanced with any type of state shouldn't be.
 
 ## Should I have `Arc` or `Rc` in my API?
 
-> it’s a code smell to have reference counts in your API design. You should hide
-> it - TM.
+> It’s a code smell to have reference counts in your API design. You should hide
+> it. - TM.
 
 If you must, you will need to decide between `Rc` and `Arc` - see the next
 answer for some considerations. Also, consider taking a look at the
@@ -71,8 +71,8 @@ caller attempts to use the type from multiple threads, the compiler will
 simply stop them. It is the responsibility of the caller to use things
 safely.
 
-> if the library has `Arc` or `Rc` in the APIs, it may be making choices about
-> how you should instantiate stuff, and that’s rude. - AF.
+> If the library has `Arc` or `Rc` in the APIs, it may be making choices about
+> how you should instantiate stuff, and that’s rude. - AF
 
 There's a reasonable chance that your API can be used in parallel threads
 by virtue of `Send` and `Sync` being automatically derived. But - you should
@@ -131,8 +131,6 @@ fn main() {
         });
     });
 }
-
-
 ```
 
 ## What should I `Derive` to make my code optimally usable?
@@ -142,24 +140,22 @@ The [official guidelines say to be eager](https://rust-lang.github.io/api-guidel
 But don't overpromise:
 
 > Equality can suddenly become expensive later - don’t make types comparable
-> unless you intend people to be able to do that. Allowing people to pattern
-> match on enums is usually better - MY.
+> unless you intend people to be able to [compare instances of the type].
+> Allowing people to pattern match on enums is usually better. - MY
 
-Note that [`syn` is a rare case](https://docs.rs/syn/latest/syn/) where it
+Note that [`syn` is a rare case](https://docs.rs/syn/latest/syn/) in that it
 has so many types, and is so extensively depended upon by the rest of the Rust
 ecosystem, that it avoids deriving the standard traits unless explicitly
-commanded to do so via cargo feature. This is an unusual pattern and should
+commanded to do so via a cargo feature. This is an unusual pattern and should
 not normally be followed.
 
 ## How should I think about API design, differently from C++?
 
-> make the most of the fact that everything is immutable by default. It should
-> be trivially observable that most things in the program do not change - the
-> language encourages everything to be immutable - things which are mutable
-> should stick out. - AF.
+> Make the most of the fact that everything is immutable by default. Things
+> which are mutable should stick out. - AF
 
-> think about things which should take self and return self - AF.
+> Think about things which should take self and return self. - AF
 
 Refactoring is less expensive in Rust than C++ due to compiler safeguards, but
-_restructuring_ is expensive in any language. Think about "one way doors"
-and "two way doors" in the design space.
+_rearchitecting_ is expensive in any language. Think about "one way doors"
+and "two way doors" in the design space: can you undo a change later?

@@ -245,7 +245,7 @@ to use boxes unless your profiling shows a lot of memcpy of that particular
 type (or, perhaps, the relevant [clippy lint](https://rust-lang.github.io/rust-clippy/v0.0.212/index.html#large_enum_variant)
 informs you that you have a problem.)
 
-> I never box things unless it’s really big - MG
+> I never box things unless they're really big. - MG
 
 Another heuristic is if part of your data structure is very rarely filled,
 in which case you may wish to `Box` it to avoid incurring an overhead for all
@@ -267,8 +267,8 @@ a pointer wide.)
 
 Of course, Rust may require you to use a box:
 
-* if you need to `Pin` some data, typically for async Rust
-* if you otherwise have an infinitely sized data structure.
+* if you need to `Pin` some data, typically for async Rust, or
+* if you otherwise have an infinitely sized data structure
 
 but as usual, the compiler will explain very nicely.
 
@@ -366,7 +366,7 @@ fn main() {
 }
 ```
 
-(the type system would prevent these operations happening in parallel).
+(The type system would prevent these operations happening in parallel.)
 
 *Marker traits*. Indicate that a type meets certain invariants, so subsequent
 users of that type don't need to check at runtime. A common example is to
@@ -386,9 +386,9 @@ enum ElectionState {
 };
 ```
 
-(A more heavyweight approach here is to define types for each state, and
+A more heavyweight approach here is to define types for each state, and
 allow valid state transitions by taking the previous state by-value and
-returning the next state by-value.)
+returning the next state by-value.
 
 ```rust
 struct Seed { water_available: u32 }
@@ -457,8 +457,8 @@ might want to look at the [archery crate](https://docs.rs/archery/latest/archery
 
 ## What should I do instead of inheritance?
 
-Use composition. Sometimes this results in more boilerplate, but it avoids
-a raft of complexity.
+Use [composition](https://en.wikipedia.org/wiki/Composition_over_inheritance).
+Sometimes this results in more boilerplate, but it avoids a raft of complexity.
 
 Specifically, for example:
 * you might include the "superclass" struct as a member of the subclass
@@ -469,24 +469,40 @@ Specifically, for example:
 Usually the answer is obvious: it's unlikely that your Rust code is structured
 in such a way that inheritance would be a good fit anyway.
 
-> I've only missed inheritance when actually implementing languages which
-> themselves have inheritance - MG.
-
+> I've only missed inheritance when actually _implementing_ languages which
+> themselves have inheritance. - MG
 
 ## I need a list of nodes which can refer to one another. How?
 
-You can't easily do self-referential data structures in Rust. The usual workaround is to [use an arena](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) and replace references from one node to another with node IDs.
+You can't easily do self-referential data structures in Rust. The usual
+workaround is to [use an
+arena](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) and
+replace references from one node to another with node IDs.
 
-An arena is typically a `Vec` (or similar), and the node IDs are a newtype wrapper around a simple integer index.
+An arena is typically a `Vec` (or similar), and the node IDs are a newtype
+wrapper around a simple integer index.
 
-Obviously, Rust doesn't check that your node IDs are valid. If you don't have proper references, what stops you from having stale IDs?
+Obviously, Rust doesn't check that your node IDs are valid. If you don't have
+proper references, what stops you from having stale IDs?
 
-Arenas are often purely additive, which means that you can add entries but not delete them ([example](https://github.com/Manishearth/elsa/blob/master/examples/mutable_arena.rs)). If you must have an arena which deletes things, then use generational IDs; see the [generational-arena](https://docs.rs/generational-arena/) crate and this [RustConf keynote](https://www.youtube.com/watch?v=aKLntZcp27M) for more details.
+Arenas are often purely additive, which means that you can add entries but not
+delete them
+([example](https://github.com/Manishearth/elsa/blob/master/examples/mutable_arena.rs)).
+If you must have an arena which deletes things, then use generational IDs; see
+the [generational-arena](https://docs.rs/generational-arena/) crate and this
+[RustConf keynote](https://www.youtube.com/watch?v=aKLntZcp27M) for more
+details.
 
-If arenas still sound like a nasty workaround, consider that you might choose an arena anyway for other reasons:
+If arenas still sound like a nasty workaround, consider that you might choose
+an arena anyway for other reasons:
 
-* All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. [Bumpalo](https://docs.rs/bumpalo/3.6.1/bumpalo/) formalizes this.
-* The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (`'arena` for example), making the provenance of those references very clear.
+* All of the objects in the arena will be freed at the end of the arena's
+  lifetime, instead of during their manipulation, which can give very low
+  latency for some use-cases. [Bumpalo](https://docs.rs/bumpalo/3.6.1/bumpalo/)
+  formalizes this.
+* The rest of your program might have real Rust references into the arena. You
+  can give the arena a named lifetime (`'arena` for example), making the
+  provenance of those references very clear.
 
 ## I'm having a miserable time making my data structure. Should I use unsafe?
 
@@ -514,10 +530,10 @@ by default, and resort to writing your own only if you exhaust that option.
 
 C++ makes it hard to pull in third-party dependencies, so it's culturally normal
 to write new code. Rust makes it trivial to add dependencies, and so you will
-need to do that, even if it feels awkward for a C++ programmer.
+need to do that, even if it feels surprising for a C++ programmer.
 
-This _ease_ of adding dependencies **co-evolved** with the
-_difficulty_ of making data structures. It's simply a part of programming in Rust.
+This ease of adding dependencies co-evolved with the
+difficulty of making data structures. It's simply a part of programming in Rust.
 You just can't separate the language and the ecosystem.
 
 You might argue that this dependency on third-party crates is concerning
