@@ -84,8 +84,8 @@ use std::collections::VecDeque;
 use std::sync::Mutex;
 use std::thread;
 
-// Absolutely no effort required to pizza, cooking or eating procedures
-// to be usable in a threaded context
+// Imagine this is your library, exposing this interface to library
+// consumers...
 mod pizza_api {
 
     use std::thread;
@@ -111,6 +111,8 @@ mod pizza_api {
     }
 }
 
+// Absolutely no changes are required to the pizza library to let
+// it be usable from a multithreaded context
 fn main() {
     let pizza_queue = Mutex::new(RefCell::new(VecDeque::new()));
     thread::scope(|s| {

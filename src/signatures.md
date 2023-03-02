@@ -270,19 +270,116 @@ it should take `self` by value. Examples:
 For example, suppose you want to give all of your dogs to your friend, yet also
 tell your friend which one of the dogs is the Best Boy or Girl.
 
-A common use case is if you find yourself destructuring a complex data
-structure to work out what to do with it, then you want to pass the whole thing
-into another function but you don't want to have to repeat all that
-destructuring work.
+```cpp
+struct PetInformation {
+  std::vector<Dog> dogs;
+  Dog& BestBoy;
+  Dog& BestGirl;
+}
 
-Generally this is an indication that your types are not split down in the correct
+PetInformation GetPetInformation() {
+  // ...
+}
+```
+
+Generally this is an indication that your types or functions are not split down
+in the correct
 way:
 
 > This is a decomposition problem. Once you’ve found the correct decomposition, everything
-> else just works. The code almost writes itself. - AF.
+> else just works. The code almost writes itself. - AF
 
-If you must do this though, perhaps you can pass the thing, and a closure
-to extract part of the thing.
+```rust
+# struct Dog;
+struct PetInformation(Vec<Dog>);
+
+fn get_pet_information() -> PetInformation {
+  // ...
+# PetInformation(Vec::new())
+}
+
+fn identify_best_boy(pet_information: &PetInformation) -> &Dog {
+  // ...
+  # pet_information.0.get(0).unwrap()
+}
+```
+
+One use-case is when you want to act on some data, depending on its contents...
+but you also wanted to do something with those contents that you previously
+identified.
+
+```rust
+# struct Key;
+struct Door { locked: bool }
+
+struct Car {
+  ignition: Option<Key>,
+  door: Door,
+}
+
+fn steal_car(car: Car) {
+  match car {
+    Car {
+      ignition: Some(ref key),
+      door: Door { locked: false }
+    } => drive_away_normally(car /* , key */),
+    _ => break_in_and_hotwire(car)
+  }
+}
+
+fn drive_away_normally(car: Car /* , key: &Key */) {
+  // Annoying to have to repeat this code...
+  let key = match car {
+    Car {
+      ignition: Some(ref key),
+      ..
+    } => key,
+    _ => unreachable!()
+  };
+  turn_key(key);
+  // ...
+}
+
+# fn turn_key(key: &Key) {}
+# fn break_in_and_hotwire(car: Car) {}
+```
+
+If this repeated matching gets annoying, it's relatively easy
+to extract it to a function.
+
+```rust
+# fn turn_key(key: &Key) {}
+# fn break_in_and_hotwire(car: Car) {}
+# struct Key;
+# struct Door { locked: bool }
+# struct Car {
+  # ignition: Option<Key>,
+  # door: Door,
+# }
+
+impl Car {
+  fn get_usable_key(&self) -> Option<&Key> {
+    match self {
+      Car {
+        ignition: Some(ref key),
+        door: Door { locked: false }
+      } => Some(key),
+      _ => None,
+    }
+  }
+}
+
+fn steal_car(car: Car) {
+  match car.get_usable_key() {
+    None => break_in_and_hotwire(car),
+    Some(_) => drive_away_normally(car),
+  }
+}
+
+fn drive_away_normally(car: Car) {
+  turn_key(car.get_usable_key().unwrap());
+}
+```
 
 ## When should I return `impl Trait`?
 
