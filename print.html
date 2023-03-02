@@ -157,7 +157,7 @@
 <p>The guide starts with idioms at the small scale - answering questions about how you'd write a few lines of code - and moves towards ever larger patterns - answering questions about how you'd structure your whole codebase.</p>
 <h1 id="contributors"><a class="header" href="#contributors">Contributors</a></h1>
 <p>The following awesome people helped write the answers here, and they're sometimes quoted using the abbreviations given.</p>
-<p>Thanks to Alyssa Haroldsen <a href="https://twitter.com/kupiakos">(@kupiakos)</a> (AH), Augie Fackler (AF), David Tolnay <a href="https://twitter.com/davidtolnay">(@davidtolnay)</a> (DT), Łukasz Anforowicz (LA), Manish Goregaokar <a href="https://twitter.com/ManishEarth">(@ManishEarth)</a> (MG), Mike Forster (MF), Miguel Young de la Sota <a href="https://twitter.com/DrawsMiguel">(@DrawsMiguel)</a> (MY), and Tyler Mandry <a href="https://twitter.com/tmandry">(@tmandry)</a> (TM).</p>
+<p>Thanks to Adam Perry<a href="https://twitter.com/__anp__">(@__anp__)</a> (AP), Alyssa Haroldsen <a href="https://twitter.com/kupiakos">(@kupiakos)</a> (AH), Augie Fackler (AF), David Tolnay <a href="https://twitter.com/davidtolnay">(@davidtolnay)</a> (DT), Łukasz Anforowicz (LA), Manish Goregaokar <a href="https://twitter.com/ManishEarth">(@ManishEarth)</a> (MG), Mike Forster (MF), Miguel Young de la Sota <a href="https://twitter.com/DrawsMiguel">(@DrawsMiguel)</a> (MY), and Tyler Mandry <a href="https://twitter.com/tmandry">(@tmandry)</a> (TM).</p>
 <p>Their views have been edited and collated by Adrian Taylor <a href="https://twitter.com/adehohum">(@adehohum)</a>, <a href="mailto:danakj@chromium.org">danakj@chromium.org</a> and Martin Brænne. Any errors or misrepresentations are ours.</p>
 <p>Licensed under either of Apache License, Version 2.0 or MIT license at your option.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-code-in-function-bodies"><a class="header" href="#questions-about-code-in-function-bodies">Questions about code in function bodies</a></h1>
@@ -431,7 +431,7 @@ fn make_shopping_list_e() -&gt; HashSet&lt;&amp;'static str&gt; {
 <p>Here's a diagram showing how data flows in this iterator pipeline:</p>
 </li>
 </ul>
-<pre class="mermaid">  flowchart LR
+<pre class="mermaid">flowchart LR
     %%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
       Pets
       Filter([filter by hunger])
@@ -448,7 +448,7 @@ fn make_shopping_list_e() -&gt; HashSet&lt;&amp;'static str&gt; {
       Map ---&gt; Meals
       Meals ---&gt; uniqueify
       uniqueify ---&gt; shopping
-  </pre>
+</pre>
 <ul>
 <li>Here are other iterator APIs that will come in useful:
 <ul>
@@ -769,6 +769,66 @@ it should take <code>self</code> by value. Examples:</p>
 <li>Closing a file and returning a result code.</li>
 <li>A builder-pattern object which spits out the thing it was building. (<a href="https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate">Example</a>).</li>
 </ul>
+<h2 id="should-i-return-an-error-or-panic"><a class="header" href="#should-i-return-an-error-or-panic">Should I return an error, or panic?</a></h2>
+<p>Panics should be used only for invariants, never for anything that you believe
+might happen. That's especially true <a href="https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell">for libraries</a></p>
+<ul>
+<li>panicking (or asserting) should be reserved for the 'top level' code driving
+the application.</li>
+</ul>
+<blockquote>
+<p>Libraries which panic are super-rude and I hate them - MY</p>
+</blockquote>
+<p>Even in your own application code, panicking might not be wise:</p>
+<blockquote>
+<p>Panicking in application logic for recoverable errors makes it way harder to librarify some code - AP</p>
+</blockquote>
+<p>If you really must have an API which can panic, add a <code>try_</code> equivalent too.</p>
+<h2 id="what-should-my-error-type-be"><a class="header" href="#what-should-my-error-type-be">What should my error type be?</a></h2>
+<p><a href="https://doc.rust-lang.org/std/result/">Rust's <code>Result</code> type</a> is parameterized
+over an error type. What should you use?</p>
+<p>For app code, consider <a href="https://docs.rs/anyhow/">anyhow</a>. For library code,
+use your own <code>enum</code> of error conditions - you can use <a href="https://docs.rs/thiserror/">thiserror</a>
+to make this more pleasant.</p>
+<h2 id="when-should-i-take-or-return-dyn-trait"><a class="header" href="#when-should-i-take-or-return-dyn-trait">When should I take or return <code>dyn Trait</code>?</a></h2>
+<p>In either C++ or Rust, you can choose between monomorphization (that is, building
+code multiple times for each permutation of parameter types) or dynamic dispatch (i.e.
+looking up the correct implementation using vtables).</p>
+<p>In C++ the syntax is completely different - templates vs virtual functions.
+In Rust the syntax is almost identical - in some cases it's as simple as
+exchanging the <code>impl</code> keyword with the <code>dyn</code> keyword.</p>
+<p>Given this flexibility to switch strategies, which should you start with?</p>
+<p>In both languages, monomorphization tends to result in a quicker program (partly
+due to better inlining). It's arguably true that inlining is more important in
+Rust, due to its functional nature and pervasive use of iterators. Whether or
+not that's the reason, experienced Rustaceans usually start with <code>impl</code>:</p>
+<blockquote>
+<p>It's best practice to start with monomorphization and move to <code>dyn</code>... - MG</p>
+</blockquote>
+<p>The main cost of monomorphization is larger binaries. There are cases where
+large amounts of code can end up being duplicated (the marvellous <a href="https://serde.rs/">serde</a>
+is one).</p>
+<p>You <em>can</em> choose to do things the other way round:</p>
+<blockquote>
+<p>... it’s workable practice to start with <code>dyn</code> and then move to <code>impl</code> when you have problems. - MG</p>
+</blockquote>
+<p><code>dyn</code> can be awkward, and potentially expensive in different ways:</p>
+<blockquote>
+<p>One thing to note about pervasive <code>dyn</code> is that because it unsizes the types it wraps, you need to box it if you want to store it by value. You end up with a good bit more allocator pressure if you try to have <code>dyn</code> field types. - AP</p>
+</blockquote>
+<h2 id="ai-seem-to-have-lots-of-named-lifetimes-am-bi-doing-something-wrong"><a class="header" href="#ai-seem-to-have-lots-of-named-lifetimes-am-bi-doing-something-wrong"><code>&lt;'a&gt;</code>I seem to have lots of named lifetimes. Am <code>&lt;'b&gt;</code>I doing something wrong?</a></h2>
+<p>Some say that if you have a significant number of named lifetimes, you're
+overcomplicating things.</p>
+<p>There are some scenarios where multiple named lifetimes make perfect sense - for example
+if you're dealing with an arena, or major phases of a process (the Rust compiler
+has <code>'gcx</code> and <code>'tcx</code> lifetimes relating to the output of certain compile phases.)</p>
+<p>But otherwise, it may be that you've got lifetimes because you're trying <em>too
+hard</em> to avoid a copy. You may be better off simply switching to runtime
+checking (e.g. <code>Rc</code>, <code>Arc</code>) or even cloning.</p>
+<p>Are named lifetimes even a &quot;code smell&quot;?</p>
+<blockquote>
+<p>My experience has been that the extent to which they're a smell varies a good bit based on the programmer's experience level, which has led me towards increased skepticism over time. Lots of people learning Rust have experienced the pain of first not wanting to <code>.clone()</code> something, immediately putting lifetimes everywhere, and then feeling the pain of lifetime subtyping and variance. I don't think they're nearly as odorous as unsafe, for example, but treating them as a bit of a smell does I think lead to code that's easier to read for a newcomer and to refactor around the stack. - AP</p>
+</blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-types"><a class="header" href="#questions-about-your-types">Questions about your types</a></h1>
 <h2 id="my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do"><a class="header" href="#my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do">My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?</a></h2>
 <p>It's common in C++ to have a class that contain mutable references to other

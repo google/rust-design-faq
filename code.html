@@ -417,7 +417,7 @@ fn make_shopping_list_e() -&gt; HashSet&lt;&amp;'static str&gt; {
 <p>Here's a diagram showing how data flows in this iterator pipeline:</p>
 </li>
 </ul>
-<pre class="mermaid">  flowchart LR
+<pre class="mermaid">flowchart LR
     %%{ init: { 'flowchart': { 'nodeSpacing': 40, 'rankSpacing': 15 } } }%%
       Pets
       Filter([filter by hunger])
@@ -434,7 +434,7 @@ fn make_shopping_list_e() -&gt; HashSet&lt;&amp;'static str&gt; {
       Map ---&gt; Meals
       Meals ---&gt; uniqueify
       uniqueify ---&gt; shopping
-  </pre>
+</pre>
 <ul>
 <li>Here are other iterator APIs that will come in useful:
 <ul>
