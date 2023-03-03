@@ -1,5 +1,7 @@
 # Questions about your types
 
+<!-- toc -->
+
 ## My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?
 
 It's common in C++ to have a class that contain mutable references to other
