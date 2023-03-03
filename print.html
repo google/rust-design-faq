@@ -161,6 +161,13 @@
 <p>Their views have been edited and collated by Adrian Taylor <a href="https://twitter.com/adehohum">(@adehohum)</a>, Chris Palmer, <a href="mailto:danakj@chromium.org">danakj@chromium.org</a> and Martin Brænne. Any errors or misrepresentations are ours.</p>
 <p>Licensed under either of Apache License, Version 2.0 or MIT license at your option.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-code-in-function-bodies"><a class="header" href="#questions-about-code-in-function-bodies">Questions about code in function bodies</a></h1>
+<ul>
+<li><a href="code.html#how-can-i-avoid-the-performance-penalty-of-bounds-checks">How can I avoid the performance penalty of bounds checks?</a></li>
+<li><a href="code.html#isnt-it-confusing-to-use-the-same-variable-name-twice">Isn't it confusing to use the same variable name twice?</a></li>
+<li><a href="code.html#how-can-i-avoid-the-performance-penalty-of-unwrap">How can I avoid the performance penalty of <code>unwrap()</code>?</a></li>
+<li><a href="code.html#how-do-i-access-variables-from-within-a-spawned-thread">How do I access variables from within a spawned thread?</a></li>
+<li><a href="code.html#when-should-i-use-runtime-checks-vs-jumping-through-hoops-to-do-static-checks">When should I use runtime checks vs jumping through hoops to do static checks?</a></li>
+</ul>
 <h2 id="how-can-i-avoid-the-performance-penalty-of-bounds-checks"><a class="header" href="#how-can-i-avoid-the-performance-penalty-of-bounds-checks">How can I avoid the performance penalty of bounds checks?</a></h2>
 <p>Rust array and list accesses are all bounds checked. You may be worried about a performance penalty. How can you avoid that?</p>
 <blockquote>
@@ -575,6 +582,22 @@ type with more than 1 lifetime, or other wizardry — is often an optimization
 that you can defer until later. In the beginning, and when writing small
 programs that you only intend to use a few times ('scripts'), copying is fine.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-function-signatures"><a class="header" href="#questions-about-your-function-signatures">Questions about your function signatures</a></h1>
+<ul>
+<li><a href="signatures.html#should-i-return-an-iterator-or-a-collection">Should I return an iterator or a collection?</a></li>
+<li><a href="signatures.html#how-flexible-should-my-parameters-be">How flexible should my parameters be?</a></li>
+<li><a href="signatures.html#how-do-i-overload-constructors">How do I overload constructors?</a></li>
+<li><a href="signatures.html#when-must-i-use-must_use">When must I use <code>#[must_use]</code>?</a></li>
+<li><a href="signatures.html#when-should-i-take-parameters-by-value">When should I take parameters by value?</a></li>
+<li><a href="signatures.html#should-i-ever-take-self-by-value">Should I ever take <code>self</code> by value?</a></li>
+<li><a href="signatures.html#how-do-i-take-a-thing-and-a-reference-to-something-within-that-thing">How do I take a thing, and a reference to something within that thing?</a></li>
+<li><a href="signatures.html#when-should-i-return-impl-trait">When should I return <code>impl Trait</code>?</a></li>
+<li><a href="signatures.html#i-miss-function-overloading-what-do-i-do">I miss function overloading! What do I do?</a></li>
+<li><a href="signatures.html#i-miss-operator-overloading-what-do-i-do">I miss operator overloading! What do I do?</a></li>
+<li><a href="signatures.html#should-i-return-an-error-or-panic">Should I return an error, or panic?</a></li>
+<li><a href="signatures.html#what-should-my-error-type-be">What should my error type be?</a></li>
+<li><a href="signatures.html#when-should-i-take-or-return-dyn-trait">When should I take or return <code>dyn Trait</code>?</a></li>
+<li><a href="signatures.html#ai-seem-to-have-lots-of-named-lifetimes-am-bi-doing-something-wrong"><code>&lt;'a&gt;</code>I seem to have lots of named lifetimes. Am <code>&lt;'b&gt;</code>I doing something wrong?</a></li>
+</ul>
 <h2 id="should-i-return-an-iterator-or-a-collection"><a class="header" href="#should-i-return-an-iterator-or-a-collection">Should I return an iterator or a collection?</a></h2>
 <blockquote>
 <p>Pretty much always return an iterator. - AH</p>
@@ -1039,6 +1062,24 @@ checking (e.g. <code>Rc</code>, <code>Arc</code>) or even cloning.</p>
 <p>My experience has been that the extent to which they're a smell varies a good bit based on the programmer's experience level, which has led me towards increased skepticism over time. Lots of people learning Rust have experienced the pain of first not wanting to <code>.clone()</code> something, immediately putting lifetimes everywhere, and then feeling the pain of lifetime subtyping and variance. I don't think they're nearly as odorous as unsafe, for example, but treating them as a bit of a smell does I think lead to code that's easier to read for a newcomer and to refactor around the stack. - AP</p>
 </blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-types"><a class="header" href="#questions-about-your-types">Questions about your types</a></h1>
+<ul>
+<li><a href="types.html#my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do">My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?</a></li>
+<li><a href="types.html#my-type-needs-to-store-arbitrary-user-data-what-do-i-do-instead-of-void-">My type needs to store arbitrary user data. What do I do instead of <code>void *</code>?</a></li>
+<li><a href="types.html#when-should-i-put-my-data-in-a-box">When should I put my data in a <code>Box</code>?</a></li>
+<li><a href="types.html#should-i-have-public-fields-or-accessor-methods">Should I have public fields or accessor methods?</a></li>
+<li><a href="types.html#when-should-i-use-a-newtype-wrapper">When should I use a newtype wrapper?</a></li>
+<li><a href="types.html#how-else-can-i-use-rusts-type-system-to-avoid-high-level-logic-bugs">How else can I use Rust's type system to avoid high-level logic bugs?</a>
+<ul>
+<li><a href="types.html#zero-sized-types">Zero-sized types.</a></li>
+<li><a href="types.html#marker-traits">Marker traits</a></li>
+<li><a href="types.html#enums-as-state-machines">Enums as state machines.</a></li>
+</ul>
+</li>
+<li><a href="types.html#what-should-i-do-instead-of-inheritance">What should I do instead of inheritance?</a></li>
+<li><a href="types.html#i-need-a-list-of-nodes-which-can-refer-to-one-another-how">I need a list of nodes which can refer to one another. How?</a></li>
+<li><a href="types.html#im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe">I'm having a miserable time making my data structure. Should I use unsafe?</a></li>
+<li><a href="types.html#i-nevertheless-have-to-write-my-own-data-structure-should-i-use-unsafe">I nevertheless have to write my own data structure. Should I use unsafe?</a></li>
+</ul>
 <h2 id="my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do"><a class="header" href="#my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do">My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?</a></h2>
 <p>It's common in C++ to have a class that contain mutable references to other
 objects; the class mutates those objects to do its work. Often, there
@@ -1562,6 +1603,17 @@ mistakes) so a wise strategy might be to start with a fully-safe, but slow,
 version, establish solid tests, and then <a href="https://doc.rust-lang.org/nomicon/">reach for unsafe</a>.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-designing-apis-for-others"><a class="header" href="#questions-about-designing-apis-for-others">Questions about designing APIs for others</a></h1>
+<ul>
+<li><a href="apis.html#when-should-my-type-implement-default">When should my type implement <code>Default</code>?</a></li>
+<li><a href="apis.html#when-should-my-type-implement-from-into-and-tryfrom">When should my type implement <code>From</code>, <code>Into</code> and <code>TryFrom</code>?</a></li>
+<li><a href="apis.html#how-should-i-expose-constructors">How should I expose constructors?</a></li>
+<li><a href="apis.html#when-should-my-type-implement-asref">When should my type implement <code>AsRef</code>?</a></li>
+<li><a href="apis.html#when-should-i-implement-copy">When should I implement <code>Copy</code>?</a></li>
+<li><a href="apis.html#should-i-have-arc-or-rc-in-my-api">Should I have <code>Arc</code> or <code>Rc</code> in my API?</a></li>
+<li><a href="apis.html#should-my-api-be-thread-safe-what-does-that-mean">Should my API be thread-safe? What does that mean?</a></li>
+<li><a href="apis.html#what-should-i-derive-to-make-my-code-optimally-usable">What should I <code>Derive</code> to make my code optimally usable?</a></li>
+<li><a href="apis.html#how-should-i-think-about-api-design-differently-from-c">How should I think about API design, differently from C++?</a></li>
+</ul>
 <p>See also the excellent <a href="https://rust-lang.github.io/api-guidelines/about.html">Rust API guidelines</a>.
 The document you're reading aims to provide extra hints which may be especially
 useful to folk coming from C++, but that's the canonical reference.</p>
@@ -1707,6 +1759,25 @@ which are mutable should stick out. - AF</p>
 <em>rearchitecting</em> is expensive in any language. Think about &quot;one way doors&quot;
 and &quot;two way doors&quot; in the design space: can you undo a change later?</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="questions-about-your-whole-codebase"><a class="header" href="#questions-about-your-whole-codebase">Questions about your whole codebase</a></h1>
+<ul>
+<li><a href="codebase.html#the-c-observer-pattern-is-hard-in-rust-what-to-do">The C++ observer pattern is hard in Rust. What to do?</a>
+<ul>
+<li><a href="codebase.html#option-1-make-everything-runtime-checked">Option 1: make everything runtime-checked</a></li>
+<li><a href="codebase.html#option-2-drive-the-objects-from-the-code-not-the-other-way-round">Option 2: drive the objects from the code, not the other way round</a></li>
+<li><a href="codebase.html#option-3-use-channels">Option 3: use channels</a></li>
+</ul>
+</li>
+<li><a href="codebase.html#thats-all-very-well-but-i-have-an-existing-c-object-broadcasting-events-how-exactly-should-i-observe-it">That's all very well, but I have an existing C++ object broadcasting events. How exactly should I observe it?</a></li>
+<li><a href="codebase.html#some-of-my-c-objects-have-shared-mutable-state-how-can-i-make-them-safe-in-rust">Some of my C++ objects have shared mutable state. How can I make them safe in Rust?</a></li>
+<li><a href="codebase.html#how-do-i-do-a-singleton">How do I do a singleton?</a></li>
+<li><a href="codebase.html#whats-the-best-way-to-retrofit-rusts-parallelism-benefits-to-an-existing-codebase">What's the best way to retrofit Rust's parallelism benefits to an existing codebase?</a></li>
+<li><a href="codebase.html#whats-the-best-way-to-architect-a-new-codebase-for-parallelism">What's the best way to architect a new codebase for parallelism?</a></li>
+<li><a href="codebase.html#i-need-a-list-of-nodes-which-can-refer-to-one-another-how">I need a list of nodes which can refer to one another. How?</a></li>
+<li><a href="codebase.html#should-i-have-a-few-big-crates-or-lots-of-small-ones">Should I have a few big crates or lots of small ones?</a></li>
+<li><a href="codebase.html#what-crates-should-everyone-know-about">What crates should everyone know about?</a></li>
+<li><a href="codebase.html#how-should-i-call-c-functions-from-rust-and-vice-versa">How should I call C++ functions from Rust and vice versa?</a></li>
+<li><a href="codebase.html#im-getting-a-lot-of-binary-bloat">I'm getting a lot of binary bloat.</a></li>
+</ul>
 <h2 id="the-c-observer-pattern-is-hard-in-rust-what-to-do"><a class="header" href="#the-c-observer-pattern-is-hard-in-rust-what-to-do">The C++ observer pattern is hard in Rust. What to do?</a></h2>
 <p>The C++ observer pattern usually means that there are broadcasters sending messages to consumers:</p>
 <pre class="mermaid">flowchart TB

@@ -147,6 +147,24 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="questions-about-your-types"><a class="header" href="#questions-about-your-types">Questions about your types</a></h1>
+<ul>
+<li><a href="#my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do">My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?</a></li>
+<li><a href="#my-type-needs-to-store-arbitrary-user-data-what-do-i-do-instead-of-void-">My type needs to store arbitrary user data. What do I do instead of <code>void *</code>?</a></li>
+<li><a href="#when-should-i-put-my-data-in-a-box">When should I put my data in a <code>Box</code>?</a></li>
+<li><a href="#should-i-have-public-fields-or-accessor-methods">Should I have public fields or accessor methods?</a></li>
+<li><a href="#when-should-i-use-a-newtype-wrapper">When should I use a newtype wrapper?</a></li>
+<li><a href="#how-else-can-i-use-rusts-type-system-to-avoid-high-level-logic-bugs">How else can I use Rust's type system to avoid high-level logic bugs?</a>
+<ul>
+<li><a href="#zero-sized-types">Zero-sized types.</a></li>
+<li><a href="#marker-traits">Marker traits</a></li>
+<li><a href="#enums-as-state-machines">Enums as state machines.</a></li>
+</ul>
+</li>
+<li><a href="#what-should-i-do-instead-of-inheritance">What should I do instead of inheritance?</a></li>
+<li><a href="#i-need-a-list-of-nodes-which-can-refer-to-one-another-how">I need a list of nodes which can refer to one another. How?</a></li>
+<li><a href="#im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe">I'm having a miserable time making my data structure. Should I use unsafe?</a></li>
+<li><a href="#i-nevertheless-have-to-write-my-own-data-structure-should-i-use-unsafe">I nevertheless have to write my own data structure. Should I use unsafe?</a></li>
+</ul>
 <h2 id="my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do"><a class="header" href="#my-class-needs-mutable-references-to-other-things-to-do-its-job-other-classes-need-mutable-references-to-these-things-too-what-do-i-do">My 'class' needs mutable references to other things to do its job. Other classes need mutable references to these things too. What do I do?</a></h2>
 <p>It's common in C++ to have a class that contain mutable references to other
 objects; the class mutates those objects to do its work. Often, there

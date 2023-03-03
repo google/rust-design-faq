@@ -147,6 +147,25 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="questions-about-your-whole-codebase"><a class="header" href="#questions-about-your-whole-codebase">Questions about your whole codebase</a></h1>
+<ul>
+<li><a href="#the-c-observer-pattern-is-hard-in-rust-what-to-do">The C++ observer pattern is hard in Rust. What to do?</a>
+<ul>
+<li><a href="#option-1-make-everything-runtime-checked">Option 1: make everything runtime-checked</a></li>
+<li><a href="#option-2-drive-the-objects-from-the-code-not-the-other-way-round">Option 2: drive the objects from the code, not the other way round</a></li>
+<li><a href="#option-3-use-channels">Option 3: use channels</a></li>
+</ul>
+</li>
+<li><a href="#thats-all-very-well-but-i-have-an-existing-c-object-broadcasting-events-how-exactly-should-i-observe-it">That's all very well, but I have an existing C++ object broadcasting events. How exactly should I observe it?</a></li>
+<li><a href="#some-of-my-c-objects-have-shared-mutable-state-how-can-i-make-them-safe-in-rust">Some of my C++ objects have shared mutable state. How can I make them safe in Rust?</a></li>
+<li><a href="#how-do-i-do-a-singleton">How do I do a singleton?</a></li>
+<li><a href="#whats-the-best-way-to-retrofit-rusts-parallelism-benefits-to-an-existing-codebase">What's the best way to retrofit Rust's parallelism benefits to an existing codebase?</a></li>
+<li><a href="#whats-the-best-way-to-architect-a-new-codebase-for-parallelism">What's the best way to architect a new codebase for parallelism?</a></li>
+<li><a href="#i-need-a-list-of-nodes-which-can-refer-to-one-another-how">I need a list of nodes which can refer to one another. How?</a></li>
+<li><a href="#should-i-have-a-few-big-crates-or-lots-of-small-ones">Should I have a few big crates or lots of small ones?</a></li>
+<li><a href="#what-crates-should-everyone-know-about">What crates should everyone know about?</a></li>
+<li><a href="#how-should-i-call-c-functions-from-rust-and-vice-versa">How should I call C++ functions from Rust and vice versa?</a></li>
+<li><a href="#im-getting-a-lot-of-binary-bloat">I'm getting a lot of binary bloat.</a></li>
+</ul>
 <h2 id="the-c-observer-pattern-is-hard-in-rust-what-to-do"><a class="header" href="#the-c-observer-pattern-is-hard-in-rust-what-to-do">The C++ observer pattern is hard in Rust. What to do?</a></h2>
 <p>The C++ observer pattern usually means that there are broadcasters sending messages to consumers:</p>
 <pre class="mermaid">flowchart TB
