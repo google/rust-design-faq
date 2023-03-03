@@ -49,7 +49,8 @@ more nuanced with any type of state shouldn't be.
 > it. - TM.
 
 If you must, you will need to decide between `Rc` and `Arc` - see the next
-answer for some considerations. Also, consider taking a look at the
+answer for some considerations. But, generally, `Arc` is better practice because
+it imposes fewer restrictions on your callers. Also, consider taking a look at the
 [`Archery` crate](https://docs.rs/archery/latest/archery/).
 
 ## Should my API be thread-safe? What does that mean?

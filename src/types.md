@@ -314,15 +314,23 @@ logic bugs later](code.md#When-should-I-use-runtime-checks-vs-jumping-through-ho
 
 Yes.
 
-*Zero sized types* ("ZSTs"). Often used as capability tokens - you can statically
-prove that code exclusively has the right to do something. For example:
+### Zero-sized types.
+
+Also known as "ZSTs". These are types which occupy literally zero bytes, and
+so (generally) make no difference whatsoever to the code generated. But you
+can use them in the type system to enforce invariants at compile-time with
+no runtime check.
+
+For example, they're often used as capability tokens - you can statically
+prove that code exclusively has the right to do something.
 
 ```rust
 pub trait ValidationStatus {}
 
 mod validator {
   use self::super::{Bytecode, ValidationStatus};
-  // Private field ensures this can't be created outside this struct
+  /// ZST marker to show that bytecode has been validated.
+  // Private field ensures this can't be created outside this mod
   // but PhantomData means this is still zero-sized.
   pub struct BytecodeValidated(std::marker::PhantomData<u8>);
   pub fn validate_bytecode<V: ValidationStatus>(code: Bytecode<V>) -> Bytecode<BytecodeValidated> {
@@ -349,11 +357,6 @@ fn run_bytecode(bytecode: &Bytecode<validator::BytecodeValidated>) {
   // runtime branches involved.
 }
 
-fn transform_bytecode<V: ValidationStatus>(input: Bytecode<V>) -> Bytecode<V> {
-  // ...
-# input
-}
-
 fn get_unvalidated_bytecode() -> Bytecode<BytecodeNotValidated> {
   // ...
 #   Bytecode {
@@ -364,7 +367,6 @@ fn get_unvalidated_bytecode() -> Bytecode<BytecodeNotValidated> {
 
 fn main() {
   let bytecode = get_unvalidated_bytecode();
-  let bytecode = transform_bytecode(bytecode);
   // run_bytecode(bytecode); // does not compile
   let bytecode = validator::validate_bytecode(bytecode);
   run_bytecode(&bytecode);
@@ -400,13 +402,16 @@ fn main() {
 
 (The type system would prevent these operations happening in parallel.)
 
-*Marker traits*. Indicate that a type meets certain invariants, so subsequent
+### Marker traits
+
+Indicate that a type meets certain invariants, so subsequent
 users of that type don't need to check at runtime. A common example is to
 indicate that a type is safe to serialize into some bytestream.
 
-*Enums as state machines*. Each enum variant is a state and stores data
-associated with that state. There simply is no possibility that the data can
-get out of sync with the state.
+### Enums as state machines.
+
+Each enum variant is a state and stores data associated with that state. There
+simply is no possibility that the data can get out of sync with the state.
 
 ```rust
 enum ElectionState {
@@ -482,11 +487,6 @@ impl PlantState {
 // state machine or things are not looking rosy
 ```
 
-## When should I use `Rc` versus `Arc`?
-
-Never expose `Rc` in APIs. `Arc` is the right choice nearly always. (You
-might want to look at the [archery crate](https://docs.rs/archery/latest/archery/)).
-
 ## What should I do instead of inheritance?
 
 Use [composition](https://en.wikipedia.org/wiki/Composition_over_inheritance).
@@ -538,9 +538,10 @@ an arena anyway for other reasons:
 
 ## I'm having a miserable time making my data structure. Should I use unsafe?
 
-Low-level data structures are _hard_ in Rust. Arguably, Rust merely makes plain
-all the lifetime and ownership issues which you already had in other languages, but
-the compiler is brutal about it, and you're going to have a bad day.
+Low-level data structures are hard in Rust, especially if they're self-
+referential. Rust will make visible all sorts of risks of ownership and
+shared mutable state which may not be visible in other languages, and
+they're hard to solve in low-level data structure code.
 
 Even something as simple as a doubly-linked list is notoriously hard; so much so
 that there is a [book that teaches Rust based solely on linked lists](https://rust-unofficial.github.io/too-many-lists/).
@@ -590,5 +591,5 @@ Some suggestions:
 * Bear in mind that refactoring Rust is generally safer than refactoring
   C++ (because the compiler will point out a higher proportion of your
   mistakes) so a wise strategy might be to start with a fully-safe, but slow,
-  version, establish solid tests, and then reach for unsafe.
+  version, establish solid tests, and then [reach for unsafe](https://doc.rust-lang.org/nomicon/).
 
