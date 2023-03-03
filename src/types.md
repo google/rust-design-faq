@@ -272,12 +272,6 @@ Of course, Rust may require you to use a box:
 
 but as usual, the compiler will explain very nicely.
 
-## I miss operator overloading! What do I do?
-
-Implement the standard traits instead. This has equivalent effect in that
-folks will be able to use your type in a standard Rusty way without knowing
-too much special about your type.
-
 ## Should I have public fields or accessor methods?
 
 The trade-offs are similar to C++ except that Rust's pattern-matching makes it
@@ -313,8 +307,8 @@ they allow you to use Rust's type system to statically prevent logic bugs.
 
 A heuristic: if there are some invariants you'd be checking for at runtime,
 see if you can use a newtype wrapper to do it statically instead. Although it
-may be more code to start with, you'll save the effort of finding and fixing
-logic bugs later.
+may be more code to start with, you'll [save the effort of finding and fixing
+logic bugs later](code.md#When-should-I-use-runtime-checks-vs-jumping-through-hoops-to-do-static-checks).
 
 ## How else can I use Rust's type system to avoid high-level logic bugs?
 
@@ -324,20 +318,58 @@ Yes.
 prove that code exclusively has the right to do something. For example:
 
 ```rust
-struct PermissionToUseCamera;
+pub trait ValidationStatus {}
 
-fn prompt_user_for_permission() -> Option<PermissionToUseCamera> {
-  // ...
-#  None
+mod validator {
+  use self::super::{Bytecode, ValidationStatus};
+  // Private field ensures this can't be created outside this struct
+  // but PhantomData means this is still zero-sized.
+  pub struct BytecodeValidated(std::marker::PhantomData<u8>);
+  pub fn validate_bytecode<V: ValidationStatus>(code: Bytecode<V>) -> Bytecode<BytecodeValidated> {
+    // Do expensive validation operation here...
+   Bytecode {
+    validated: BytecodeValidated(std::marker::PhantomData),
+    code: code.code
+   }
+  }
+  impl ValidationStatus for BytecodeValidated {}
 }
 
-// Statically proven that no code calls this unless it's attempted to
-// get permission and dealt with the consequences of rejection.
-fn take_photo(permission: &PermissionToUseCamera) {
-  // ...
+struct BytecodeNotValidated;
+
+impl ValidationStatus for BytecodeNotValidated {}
+
+pub struct Bytecode<V: ValidationStatus> {
+  validated: V,
+  code: Vec<u8>,
 }
 
-//fn main() { }
+fn run_bytecode(bytecode: &Bytecode<validator::BytecodeValidated>) {
+  // Compiler PROVES you validated it before you can run it. There are no
+  // runtime branches involved.
+}
+
+fn transform_bytecode<V: ValidationStatus>(input: Bytecode<V>) -> Bytecode<V> {
+  // ...
+# input
+}
+
+fn get_unvalidated_bytecode() -> Bytecode<BytecodeNotValidated> {
+  // ...
+#   Bytecode {
+#    validated: BytecodeNotValidated,
+#    code: Vec::new()
+#  }
+}
+
+fn main() {
+  let bytecode = get_unvalidated_bytecode();
+  let bytecode = transform_bytecode(bytecode);
+  // run_bytecode(bytecode); // does not compile
+  let bytecode = validator::validate_bytecode(bytecode);
+  run_bytecode(&bytecode);
+  run_bytecode(&bytecode);
+}
 ```
 
 ZSTs can also be used to demonstrate _exclusive_ access to some resource.

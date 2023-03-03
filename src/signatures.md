@@ -430,3 +430,10 @@ impl Edible for DeliveryPerson {}
 
 This gives your caller all the convenience they want, though may increase
 work for you as the implementer.
+
+## I miss operator overloading! What do I do?
+
+Implement the standard traits instead (for example `PartialEq`, `Add`). This
+has equivalent effect in that folks will be able to use your type in a standard
+Rusty way without knowing too much special about your type.
+
