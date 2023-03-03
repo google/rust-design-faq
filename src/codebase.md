@@ -1,5 +1,7 @@
 # Questions about your whole codebase
 
+<!-- toc -->
+
 ## The C++ observer pattern is hard in Rust. What to do?
 
 The C++ observer pattern usually means that there are broadcasters sending messages to consumers:

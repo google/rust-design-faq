@@ -1,5 +1,7 @@
 # Questions about your function signatures
 
+<!-- toc -->
+
 ## Should I return an iterator or a collection?
 
 > Pretty much always return an iterator. - AH

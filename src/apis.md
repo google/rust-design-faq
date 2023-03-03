@@ -1,5 +1,7 @@
 # Questions about designing APIs for others
 
+<!-- toc -->
+
 See also the excellent [Rust API guidelines](https://rust-lang.github.io/api-guidelines/about.html).
 The document you're reading aims to provide extra hints which may be especially
 useful to folk coming from C++, but that's the canonical reference.

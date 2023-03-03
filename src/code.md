@@ -1,5 +1,7 @@
 # Questions about code in function bodies
 
+<!-- toc -->
+
 ## How can I avoid the performance penalty of bounds checks?
 
 Rust array and list accesses are all bounds checked. You may be worried about a performance penalty. How can you avoid that?

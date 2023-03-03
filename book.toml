@@ -7,6 +7,11 @@ title = "cppfaq.rs"
 [preprocessor]
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
+
+[preprocessor.toc]
+command = "mdbook-toc"
+renderer = ["html"]
+
 [output]
 [output.html]
 additional-js = ["third_party/mermaid/mermaid.min.js", "third_party/mermaid/mermaid-init.js"]
