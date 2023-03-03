@@ -236,3 +236,360 @@ fn main() {
 
 Of course, enumerating all possible stored variants remains preferable such that the
 compiler helps you to avoid runtime panics.
+
+## When should I put my data in a `Box`?
+
+In C++, you often need to box things for ownership reasons, whereas in Rust
+it's typically just a performance trade-off. It's arguably premature optimization
+to use boxes unless your profiling shows a lot of memcpy of that particular
+type (or, perhaps, the relevant [clippy lint](https://rust-lang.github.io/rust-clippy/v0.0.212/index.html#large_enum_variant)
+informs you that you have a problem.)
+
+> I never box things unless they're really big. - MG
+
+Another heuristic is if part of your data structure is very rarely filled,
+in which case you may wish to `Box` it to avoid incurring an overhead for all
+other instances of the type.
+
+```rust
+# struct Humility; struct Talent; struct Ego;
+struct Popstar {
+  ego: Ego,
+  talent: Talent,
+  humility: Option<Box<Humility>>,
+}
+# fn main() {}
+```
+
+(This is one reason why people like using [anyhow](https://docs.rs/anyhow/latest/anyhow/)
+for their errors; it means the failure case in their `Result` enum is only
+a pointer wide.)
+
+Of course, Rust may require you to use a box:
+
+* if you need to `Pin` some data, typically for async Rust, or
+* if you otherwise have an infinitely sized data structure
+
+but as usual, the compiler will explain very nicely.
+
+## Should I have public fields or accessor methods?
+
+The trade-offs are similar to C++ except that Rust's pattern-matching makes it
+very convenient to match on fields, so within a realm of code that you own you
+may bias towards having more public fields than you're used to. As with C++,
+this can give you a future compatibility burden.
+
+## When should I use a newtype wrapper?
+
+The [newtype wrapper pattern](https://rust-unofficial.github.io/patterns/patterns/behavioural/newtype.html)
+uses Rust's type systems to enforce extra behavior without necessarily changing
+the underlying representation.
+
+```rust
+# fn get_rocket_length() -> Inches { Inches(7) }
+struct Inches(u32);
+struct Centimeters(u32);
+
+fn build_mars_orbiter() {
+  let rocket_length: Inches = get_rocket_length();
+  // mate_to_orbiter(rocket_length); // does not compile because this takes cm
+}
+```
+
+Other examples that have been used:
+* An IP address which is guaranteed not to be localhost;
+* Non-zero numbers;
+* IDs which are guaranteed to be unique
+
+Such new types typically need a lot of boilerplate, especially to implement
+the traits which users of your type would expect to find. On the other hand,
+they allow you to use Rust's type system to statically prevent logic bugs.
+
+A heuristic: if there are some invariants you'd be checking for at runtime,
+see if you can use a newtype wrapper to do it statically instead. Although it
+may be more code to start with, you'll [save the effort of finding and fixing
+logic bugs later](code.md#When-should-I-use-runtime-checks-vs-jumping-through-hoops-to-do-static-checks).
+
+## How else can I use Rust's type system to avoid high-level logic bugs?
+
+Yes.
+
+### Zero-sized types.
+
+Also known as "ZSTs". These are types which occupy literally zero bytes, and
+so (generally) make no difference whatsoever to the code generated. But you
+can use them in the type system to enforce invariants at compile-time with
+no runtime check.
+
+For example, they're often used as capability tokens - you can statically
+prove that code exclusively has the right to do something.
+
+```rust
+pub trait ValidationStatus {}
+
+mod validator {
+  use self::super::{Bytecode, ValidationStatus};
+  /// ZST marker to show that bytecode has been validated.
+  // Private field ensures this can't be created outside this mod
+  // but PhantomData means this is still zero-sized.
+  pub struct BytecodeValidated(std::marker::PhantomData<u8>);
+  pub fn validate_bytecode<V: ValidationStatus>(code: Bytecode<V>) -> Bytecode<BytecodeValidated> {
+    // Do expensive validation operation here...
+   Bytecode {
+    validated: BytecodeValidated(std::marker::PhantomData),
+    code: code.code
+   }
+  }
+  impl ValidationStatus for BytecodeValidated {}
+}
+
+struct BytecodeNotValidated;
+
+impl ValidationStatus for BytecodeNotValidated {}
+
+pub struct Bytecode<V: ValidationStatus> {
+  validated: V,
+  code: Vec<u8>,
+}
+
+fn run_bytecode(bytecode: &Bytecode<validator::BytecodeValidated>) {
+  // Compiler PROVES you validated it before you can run it. There are no
+  // runtime branches involved.
+}
+
+fn get_unvalidated_bytecode() -> Bytecode<BytecodeNotValidated> {
+  // ...
+#   Bytecode {
+#    validated: BytecodeNotValidated,
+#    code: Vec::new()
+#  }
+}
+
+fn main() {
+  let bytecode = get_unvalidated_bytecode();
+  // run_bytecode(bytecode); // does not compile
+  let bytecode = validator::validate_bytecode(bytecode);
+  run_bytecode(&bytecode);
+  run_bytecode(&bytecode);
+}
+```
+
+ZSTs can also be used to demonstrate _exclusive_ access to some resource.
+
+```rust
+struct RobotArmAccessToken;
+
+fn move_arm(token: &mut RobotArmAccessToken, x: u32, y: u32, z: u32) {
+  // ...
+}
+
+fn attach_car_door(token: &mut RobotArmAccessToken) {
+  move_arm(token, 3, 4, 6);
+  move_arm(token, 5, 3, 6);
+}
+
+fn install_windscreen(token: &mut RobotArmAccessToken) {
+  move_arm(token, 7, 8, 2);
+  move_arm(token, 1, 2, 3);
+}
+
+fn main() {
+  let mut token = RobotArmAccessToken; // ensure only one exists
+  attach_car_door(&mut token);
+  install_windscreen(&mut token);
+}
+```
+
+(The type system would prevent these operations happening in parallel.)
+
+### Marker traits
+
+Indicate that a type meets certain invariants, so subsequent
+users of that type don't need to check at runtime. A common example is to
+indicate that a type is safe to serialize into some bytestream.
+
+### Enums as state machines.
+
+Each enum variant is a state and stores data associated with that state. There
+simply is no possibility that the data can get out of sync with the state.
+
+```rust
+enum ElectionState {
+  RaisingDonations { amount_raised: u32 },
+  DoingTVInterviews { interviews_done: u16 },
+  Voting { votes_for_me: u64, votes_for_opponent: u64 },
+  Elected,
+  NotElected,
+};
+```
+
+A more heavyweight approach here is to define types for each state, and
+allow valid state transitions by taking the previous state by-value and
+returning the next state by-value.
+
+```rust
+struct Seed { water_available: u32 }
+struct Growing { water_available: u32, sun_available: u32 }
+struct Flowering;
+struct Dead;
+
+enum PlantState {
+  Seed(Seed),
+  Growing(Growing),
+  Flowering(Flowering),
+  Dead(Dead)
+}
+
+impl Seed {
+  fn advance(self) -> PlantState {
+    if self.water_available > 3 {
+      PlantState::Growing(Growing { water_available: self.water_available, sun_available: 0 })
+    } else {
+      PlantState::Dead(Dead)
+    }
+  }
+}
+
+impl Growing {
+  fn advance(self) -> PlantState {
+    if self.water_available > 3 && self.sun_available > 3 {
+      PlantState::Flowering(Flowering)
+    } else {
+      PlantState::Dead(Dead)
+    }
+  }
+}
+
+impl Flowering {
+  fn advance(self) -> PlantState {
+    PlantState::Dead(Dead)
+  }
+}
+
+impl Dead {
+  fn advance(self) -> PlantState {
+    PlantState::Dead(Dead)
+  }
+}
+
+impl PlantState {
+  fn advance(self) -> Self {
+    match self {
+      Self::Seed(seed) => seed.advance(),
+      Self::Growing(growing) => growing.advance(),
+      Self::Flowering(flowering) => flowering.advance(),
+      Self::Dead(dead) => dead.advance(),
+    }
+  }
+}
+
+// we should probably find a way to inject some sun and water into this
+// state machine or things are not looking rosy
+```
+
+## What should I do instead of inheritance?
+
+Use [composition](https://en.wikipedia.org/wiki/Composition_over_inheritance).
+Sometimes this results in more boilerplate, but it avoids a raft of complexity.
+
+Specifically, for example:
+* you might include the "superclass" struct as a member of the subclass
+  struct;
+* you might use an enum with different variants for the different possible
+  "subclasses".
+
+Usually the answer is obvious: it's unlikely that your Rust code is structured
+in such a way that inheritance would be a good fit anyway.
+
+> I've only missed inheritance when actually _implementing_ languages which
+> themselves have inheritance. - MG
+
+## I need a list of nodes which can refer to one another. How?
+
+You can't easily do self-referential data structures in Rust. The usual
+workaround is to [use an
+arena](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) and
+replace references from one node to another with node IDs.
+
+An arena is typically a `Vec` (or similar), and the node IDs are a newtype
+wrapper around a simple integer index.
+
+Obviously, Rust doesn't check that your node IDs are valid. If you don't have
+proper references, what stops you from having stale IDs?
+
+Arenas are often purely additive, which means that you can add entries but not
+delete them
+([example](https://github.com/Manishearth/elsa/blob/master/examples/mutable_arena.rs)).
+If you must have an arena which deletes things, then use generational IDs; see
+the [generational-arena](https://docs.rs/generational-arena/) crate and this
+[RustConf keynote](https://www.youtube.com/watch?v=aKLntZcp27M) for more
+details.
+
+If arenas still sound like a nasty workaround, consider that you might choose
+an arena anyway for other reasons:
+
+* All of the objects in the arena will be freed at the end of the arena's
+  lifetime, instead of during their manipulation, which can give very low
+  latency for some use-cases. [Bumpalo](https://docs.rs/bumpalo/3.6.1/bumpalo/)
+  formalizes this.
+* The rest of your program might have real Rust references into the arena. You
+  can give the arena a named lifetime (`'arena` for example), making the
+  provenance of those references very clear.
+
+## I'm having a miserable time making my data structure. Should I use unsafe?
+
+Low-level data structures are hard in Rust, especially if they're self-
+referential. Rust will make visible all sorts of risks of ownership and
+shared mutable state which may not be visible in other languages, and
+they're hard to solve in low-level data structure code.
+
+Even something as simple as a doubly-linked list is notoriously hard; so much so
+that there is a [book that teaches Rust based solely on linked lists](https://rust-unofficial.github.io/too-many-lists/).
+As that (wonderful) book makes clear, you are often faced with a choice:
+
+* [Use safe Rust, but shift compile-time checks to runtime](https://rust-unofficial.github.io/too-many-lists/fourth.html)
+* [Use `unsafe`](https://rust-unofficial.github.io/too-many-lists/fifth.html) and
+take the same degree of care you'd take in C or C++. And, just like in C or C++,
+you'll introduce [security vulnerabilities in the unsafe code](https://www.cvedetails.com/vulnerability-list/vendor_id-19029/product_id-48677/Rust-lang-Rust.html).
+
+If you're facing this decision... perhaps there's a third way.
+
+You should almost always be using somebody else's tried-and-tested
+data structure.
+
+[petgraph](https://docs.rs/petgraph) and
+[slotmap](https://docs.rs/slotmap) are great examples. Use someone else's crate
+by default, and resort to writing your own only if you exhaust that option.
+
+C++ makes it hard to pull in third-party dependencies, so it's culturally normal
+to write new code. Rust makes it trivial to add dependencies, and so you will
+need to do that, even if it feels surprising for a C++ programmer.
+
+This ease of adding dependencies co-evolved with the
+difficulty of making data structures. It's simply a part of programming in Rust.
+You just can't separate the language and the ecosystem.
+
+You might argue that this dependency on third-party crates is concerning
+from a supply-chain security point of view. Your author would agree, but
+it's just the way you do things in Rust. Stop creating your own data structures.
+
+Then again:
+
+> it’s equally miserable to implement performant, low-level data structures in
+> C++; you’ll be specializing on lots of things like is_trivially_movable etc. - MY.
+
+## I nevertheless have to write my own data structure. Should I use unsafe?
+
+I'm sorry to hear that.
+
+Some suggestions:
+
+* Use `Rc`, weak etc. until you really can't.
+* Even if you can't use a pre-existing crate for the whole data structure,
+  perhaps you can use a crate to avoid the `unsafe` bits (for example
+  [rental](https://docs.rs/rental/latest/rental/))
+* Bear in mind that refactoring Rust is generally safer than refactoring
+  C++ (because the compiler will point out a higher proportion of your
+  mistakes) so a wise strategy might be to start with a fully-safe, but slow,
+  version, establish solid tests, and then [reach for unsafe](https://doc.rust-lang.org/nomicon/).
+

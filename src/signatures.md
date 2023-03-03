@@ -265,6 +265,178 @@ it should take `self` by value. Examples:
 * Closing a file and returning a result code.
 * A builder-pattern object which spits out the thing it was building. ([Example](https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate)).
 
+## How do I take a thing, and a reference to something within that thing?
+
+For example, suppose you want to give all of your dogs to your friend, yet also
+tell your friend which one of the dogs is the Best Boy or Girl.
+
+```cpp
+struct PetInformation {
+  std::vector<Dog> dogs;
+  Dog& BestBoy;
+  Dog& BestGirl;
+}
+
+PetInformation GetPetInformation() {
+  // ...
+}
+```
+
+Generally this is an indication that your types or functions are not split down
+in the correct
+way:
+
+> This is a decomposition problem. Once you’ve found the correct decomposition, everything
+> else just works. The code almost writes itself. - AF
+
+```rust
+# struct Dog;
+struct PetInformation(Vec<Dog>);
+
+fn get_pet_information() -> PetInformation {
+  // ...
+# PetInformation(Vec::new())
+}
+
+fn identify_best_boy(pet_information: &PetInformation) -> &Dog {
+  // ...
+  # pet_information.0.get(0).unwrap()
+}
+```
+
+One use-case is when you want to act on some data, depending on its contents...
+but you also wanted to do something with those contents that you previously
+identified.
+
+```rust
+# struct Key;
+struct Door { locked: bool }
+
+struct Car {
+  ignition: Option<Key>,
+  door: Door,
+}
+
+fn steal_car(car: Car) {
+  match car {
+    Car {
+      ignition: Some(ref key),
+      door: Door { locked: false }
+    } => drive_away_normally(car /* , key */),
+    _ => break_in_and_hotwire(car)
+  }
+}
+
+fn drive_away_normally(car: Car /* , key: &Key */) {
+  // Annoying to have to repeat this code...
+  let key = match car {
+    Car {
+      ignition: Some(ref key),
+      ..
+    } => key,
+    _ => unreachable!()
+  };
+  turn_key(key);
+  // ...
+}
+
+# fn turn_key(key: &Key) {}
+# fn break_in_and_hotwire(car: Car) {}
+```
+
+If this repeated matching gets annoying, it's relatively easy
+to extract it to a function.
+
+```rust
+# fn turn_key(key: &Key) {}
+# fn break_in_and_hotwire(car: Car) {}
+# struct Key;
+# struct Door { locked: bool }
+# struct Car {
+  # ignition: Option<Key>,
+  # door: Door,
+# }
+
+impl Car {
+  fn get_usable_key(&self) -> Option<&Key> {
+    match self {
+      Car {
+        ignition: Some(ref key),
+        door: Door { locked: false }
+      } => Some(key),
+      _ => None,
+    }
+  }
+}
+
+fn steal_car(car: Car) {
+  match car.get_usable_key() {
+    None => break_in_and_hotwire(car),
+    Some(_) => drive_away_normally(car),
+  }
+}
+
+fn drive_away_normally(car: Car) {
+  turn_key(car.get_usable_key().unwrap());
+}
+```
+
+## When should I return `impl Trait`?
+
+Your main consideration should be API stability. If your caller doesn't
+_need_ to know the concrete implementation type, then don't tell it. That
+gives you flexibility to change your implementation in future without breaking
+compatibility.
+
+Note [Hyrum's Law](https://www.hyrumslaw.com/)!
+
+Using `impl Trait` doesn't solve _all_ possible API stability concerns, because
+even `impl Trait` leaks auto-traits such as `Send` and `Sync`.
+
+## I miss function overloading! What do I do?
+
+Use a trait to implement the behavior you used to have.
+
+For example, in C++:
+
+```cpp
+class Dog {
+public:
+  void eat(Dogfood);
+  void eat(DeliveryPerson);
+};
+```
+
+In Rust you might express this as:
+
+```rust
+trait Edible {
+};
+
+struct Dog;
+
+impl Dog {
+  fn eat(edible: impl Edible) {
+    // ...
+  }
+}
+
+struct Dogfood;
+struct DeliveryPerson;
+
+impl Edible for Dogfood {}
+impl Edible for DeliveryPerson {}
+```
+
+This gives your caller all the convenience they want, though may increase
+work for you as the implementer.
+
+## I miss operator overloading! What do I do?
+
+Implement the standard traits instead (for example `PartialEq`, `Add`). This
+has equivalent effect in that folks will be able to use your type in a standard
+Rusty way without knowing too much special about your type.
+
 ## Should I return an error, or panic?
 
 Panics should be used only for invariants, never for anything that you believe
