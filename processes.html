@@ -3,9 +3,8 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title></title>
-                        <base href="/">
-        
+        <title>Questions about your processes - cppfaq.rs</title>
+                
 
         <!-- Custom HTML head -->
         
@@ -83,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><a href="apis.html"><strong aria-hidden="true">5.</strong> Questions about your APIs</a></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><a href="processes.html"><strong aria-hidden="true">7.</strong> Questions about your processes</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><a href="apis.html"><strong aria-hidden="true">5.</strong> Questions about your APIs</a></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><a href="processes.html" class="active"><strong aria-hidden="true">7.</strong> Questions about your processes</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -147,13 +146,28 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="document-not-found-404"><a class="header" href="#document-not-found-404">Document not found (404)</a></h1>
-<p>This URL is invalid, sorry. Please use the navigation bar or search to continue.</p>
+                        <h1 id="questions-about-your-development-processes"><a class="header" href="#questions-about-your-development-processes">Questions about your development processes</a></h1>
+<h2 id="how-should-i-use-tools-differently-from-c"><a class="header" href="#how-should-i-use-tools-differently-from-c">How should I use tools differently from C++?</a></h2>
+<ul>
+<li><em>Use <code>rustfmt</code> automatically everywhere.</em> While in C++ there are many
+different coding styles, the Rust community is in agreement (at least,
+they're in agreement that it's a good idea to be in agreement). That
+is codified in <code>rustfmt</code>. Use it, automatically, on every submission.</li>
+<li><em>Use <code>clippy</code> somewhere</em>. Its lints are useful.</li>
+<li><em>Use IDEs more liberally</em>. Even staunch vim-adherents (your author!)
+prefer to use an IDE with Rust, because it's simply invaluable to show
+type annotations. Type information is typically invisible in the language
+so in Rust you're more reliant on tooling assistance.</li>
+<li><em>Deny unsafe code</em> by default. (<code>#![forbid(unsafe_code)]</code>).</li>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="codebase.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
                         
                         
                         <div style="clear: both"></div>
@@ -162,6 +176,9 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="codebase.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
                 
                             </nav>
 

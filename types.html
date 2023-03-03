@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html" class="active"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Questions about your APIs</div></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Questions about your processes</div></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html" class="active"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><a href="apis.html"><strong aria-hidden="true">5.</strong> Questions about your APIs</a></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><a href="processes.html"><strong aria-hidden="true">7.</strong> Questions about your processes</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -350,6 +350,325 @@ fn main() {
 </code></pre></pre>
 <p>Of course, enumerating all possible stored variants remains preferable such that the
 compiler helps you to avoid runtime panics.</p>
+<h2 id="when-should-i-put-my-data-in-a-box"><a class="header" href="#when-should-i-put-my-data-in-a-box">When should I put my data in a <code>Box</code>?</a></h2>
+<p>In C++, you often need to box things for ownership reasons, whereas in Rust
+it's typically just a performance trade-off. It's arguably premature optimization
+to use boxes unless your profiling shows a lot of memcpy of that particular
+type (or, perhaps, the relevant <a href="https://rust-lang.github.io/rust-clippy/v0.0.212/index.html#large_enum_variant">clippy lint</a>
+informs you that you have a problem.)</p>
+<blockquote>
+<p>I never box things unless they're really big. - MG</p>
+</blockquote>
+<p>Another heuristic is if part of your data structure is very rarely filled,
+in which case you may wish to <code>Box</code> it to avoid incurring an overhead for all
+other instances of the type.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct Humility; struct Talent; struct Ego;
+</span>struct Popstar {
+  ego: Ego,
+  talent: Talent,
+  humility: Option&lt;Box&lt;Humility&gt;&gt;,
+}
+<span class="boring">fn main() {}
+</span></code></pre></pre>
+<p>(This is one reason why people like using <a href="https://docs.rs/anyhow/latest/anyhow/">anyhow</a>
+for their errors; it means the failure case in their <code>Result</code> enum is only
+a pointer wide.)</p>
+<p>Of course, Rust may require you to use a box:</p>
+<ul>
+<li>if you need to <code>Pin</code> some data, typically for async Rust, or</li>
+<li>if you otherwise have an infinitely sized data structure</li>
+</ul>
+<p>but as usual, the compiler will explain very nicely.</p>
+<h2 id="should-i-have-public-fields-or-accessor-methods"><a class="header" href="#should-i-have-public-fields-or-accessor-methods">Should I have public fields or accessor methods?</a></h2>
+<p>The trade-offs are similar to C++ except that Rust's pattern-matching makes it
+very convenient to match on fields, so within a realm of code that you own you
+may bias towards having more public fields than you're used to. As with C++,
+this can give you a future compatibility burden.</p>
+<h2 id="when-should-i-use-a-newtype-wrapper"><a class="header" href="#when-should-i-use-a-newtype-wrapper">When should I use a newtype wrapper?</a></h2>
+<p>The <a href="https://rust-unofficial.github.io/patterns/patterns/behavioural/newtype.html">newtype wrapper pattern</a>
+uses Rust's type systems to enforce extra behavior without necessarily changing
+the underlying representation.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">fn get_rocket_length() -&gt; Inches { Inches(7) }
+</span>struct Inches(u32);
+struct Centimeters(u32);
+
+fn build_mars_orbiter() {
+  let rocket_length: Inches = get_rocket_length();
+  // mate_to_orbiter(rocket_length); // does not compile because this takes cm
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Other examples that have been used:</p>
+<ul>
+<li>An IP address which is guaranteed not to be localhost;</li>
+<li>Non-zero numbers;</li>
+<li>IDs which are guaranteed to be unique</li>
+</ul>
+<p>Such new types typically need a lot of boilerplate, especially to implement
+the traits which users of your type would expect to find. On the other hand,
+they allow you to use Rust's type system to statically prevent logic bugs.</p>
+<p>A heuristic: if there are some invariants you'd be checking for at runtime,
+see if you can use a newtype wrapper to do it statically instead. Although it
+may be more code to start with, you'll <a href="code.html#When-should-I-use-runtime-checks-vs-jumping-through-hoops-to-do-static-checks">save the effort of finding and fixing
+logic bugs later</a>.</p>
+<h2 id="how-else-can-i-use-rusts-type-system-to-avoid-high-level-logic-bugs"><a class="header" href="#how-else-can-i-use-rusts-type-system-to-avoid-high-level-logic-bugs">How else can I use Rust's type system to avoid high-level logic bugs?</a></h2>
+<p>Yes.</p>
+<h3 id="zero-sized-types"><a class="header" href="#zero-sized-types">Zero-sized types.</a></h3>
+<p>Also known as &quot;ZSTs&quot;. These are types which occupy literally zero bytes, and
+so (generally) make no difference whatsoever to the code generated. But you
+can use them in the type system to enforce invariants at compile-time with
+no runtime check.</p>
+<p>For example, they're often used as capability tokens - you can statically
+prove that code exclusively has the right to do something.</p>
+<pre><pre class="playground"><code class="language-rust">pub trait ValidationStatus {}
+
+mod validator {
+  use self::super::{Bytecode, ValidationStatus};
+  /// ZST marker to show that bytecode has been validated.
+  // Private field ensures this can't be created outside this mod
+  // but PhantomData means this is still zero-sized.
+  pub struct BytecodeValidated(std::marker::PhantomData&lt;u8&gt;);
+  pub fn validate_bytecode&lt;V: ValidationStatus&gt;(code: Bytecode&lt;V&gt;) -&gt; Bytecode&lt;BytecodeValidated&gt; {
+    // Do expensive validation operation here...
+   Bytecode {
+    validated: BytecodeValidated(std::marker::PhantomData),
+    code: code.code
+   }
+  }
+  impl ValidationStatus for BytecodeValidated {}
+}
+
+struct BytecodeNotValidated;
+
+impl ValidationStatus for BytecodeNotValidated {}
+
+pub struct Bytecode&lt;V: ValidationStatus&gt; {
+  validated: V,
+  code: Vec&lt;u8&gt;,
+}
+
+fn run_bytecode(bytecode: &amp;Bytecode&lt;validator::BytecodeValidated&gt;) {
+  // Compiler PROVES you validated it before you can run it. There are no
+  // runtime branches involved.
+}
+
+fn get_unvalidated_bytecode() -&gt; Bytecode&lt;BytecodeNotValidated&gt; {
+  // ...
+<span class="boring">  Bytecode {
+</span><span class="boring">   validated: BytecodeNotValidated,
+</span><span class="boring">   code: Vec::new()
+</span><span class="boring"> }
+</span>}
+
+fn main() {
+  let bytecode = get_unvalidated_bytecode();
+  // run_bytecode(bytecode); // does not compile
+  let bytecode = validator::validate_bytecode(bytecode);
+  run_bytecode(&amp;bytecode);
+  run_bytecode(&amp;bytecode);
+}
+</code></pre></pre>
+<p>ZSTs can also be used to demonstrate <em>exclusive</em> access to some resource.</p>
+<pre><pre class="playground"><code class="language-rust">struct RobotArmAccessToken;
+
+fn move_arm(token: &amp;mut RobotArmAccessToken, x: u32, y: u32, z: u32) {
+  // ...
+}
+
+fn attach_car_door(token: &amp;mut RobotArmAccessToken) {
+  move_arm(token, 3, 4, 6);
+  move_arm(token, 5, 3, 6);
+}
+
+fn install_windscreen(token: &amp;mut RobotArmAccessToken) {
+  move_arm(token, 7, 8, 2);
+  move_arm(token, 1, 2, 3);
+}
+
+fn main() {
+  let mut token = RobotArmAccessToken; // ensure only one exists
+  attach_car_door(&amp;mut token);
+  install_windscreen(&amp;mut token);
+}
+</code></pre></pre>
+<p>(The type system would prevent these operations happening in parallel.)</p>
+<h3 id="marker-traits"><a class="header" href="#marker-traits">Marker traits</a></h3>
+<p>Indicate that a type meets certain invariants, so subsequent
+users of that type don't need to check at runtime. A common example is to
+indicate that a type is safe to serialize into some bytestream.</p>
+<h3 id="enums-as-state-machines"><a class="header" href="#enums-as-state-machines">Enums as state machines.</a></h3>
+<p>Each enum variant is a state and stores data associated with that state. There
+simply is no possibility that the data can get out of sync with the state.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum ElectionState {
+  RaisingDonations { amount_raised: u32 },
+  DoingTVInterviews { interviews_done: u16 },
+  Voting { votes_for_me: u64, votes_for_opponent: u64 },
+  Elected,
+  NotElected,
+};
+<span class="boring">}
+</span></code></pre></pre>
+<p>A more heavyweight approach here is to define types for each state, and
+allow valid state transitions by taking the previous state by-value and
+returning the next state by-value.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Seed { water_available: u32 }
+struct Growing { water_available: u32, sun_available: u32 }
+struct Flowering;
+struct Dead;
+
+enum PlantState {
+  Seed(Seed),
+  Growing(Growing),
+  Flowering(Flowering),
+  Dead(Dead)
+}
+
+impl Seed {
+  fn advance(self) -&gt; PlantState {
+    if self.water_available &gt; 3 {
+      PlantState::Growing(Growing { water_available: self.water_available, sun_available: 0 })
+    } else {
+      PlantState::Dead(Dead)
+    }
+  }
+}
+
+impl Growing {
+  fn advance(self) -&gt; PlantState {
+    if self.water_available &gt; 3 &amp;&amp; self.sun_available &gt; 3 {
+      PlantState::Flowering(Flowering)
+    } else {
+      PlantState::Dead(Dead)
+    }
+  }
+}
+
+impl Flowering {
+  fn advance(self) -&gt; PlantState {
+    PlantState::Dead(Dead)
+  }
+}
+
+impl Dead {
+  fn advance(self) -&gt; PlantState {
+    PlantState::Dead(Dead)
+  }
+}
+
+impl PlantState {
+  fn advance(self) -&gt; Self {
+    match self {
+      Self::Seed(seed) =&gt; seed.advance(),
+      Self::Growing(growing) =&gt; growing.advance(),
+      Self::Flowering(flowering) =&gt; flowering.advance(),
+      Self::Dead(dead) =&gt; dead.advance(),
+    }
+  }
+}
+
+// we should probably find a way to inject some sun and water into this
+// state machine or things are not looking rosy
+<span class="boring">}
+</span></code></pre></pre>
+<h2 id="what-should-i-do-instead-of-inheritance"><a class="header" href="#what-should-i-do-instead-of-inheritance">What should I do instead of inheritance?</a></h2>
+<p>Use <a href="https://en.wikipedia.org/wiki/Composition_over_inheritance">composition</a>.
+Sometimes this results in more boilerplate, but it avoids a raft of complexity.</p>
+<p>Specifically, for example:</p>
+<ul>
+<li>you might include the &quot;superclass&quot; struct as a member of the subclass
+struct;</li>
+<li>you might use an enum with different variants for the different possible
+&quot;subclasses&quot;.</li>
+</ul>
+<p>Usually the answer is obvious: it's unlikely that your Rust code is structured
+in such a way that inheritance would be a good fit anyway.</p>
+<blockquote>
+<p>I've only missed inheritance when actually <em>implementing</em> languages which
+themselves have inheritance. - MG</p>
+</blockquote>
+<h2 id="i-need-a-list-of-nodes-which-can-refer-to-one-another-how"><a class="header" href="#i-need-a-list-of-nodes-which-can-refer-to-one-another-how">I need a list of nodes which can refer to one another. How?</a></h2>
+<p>You can't easily do self-referential data structures in Rust. The usual
+workaround is to <a href="https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/">use an
+arena</a> and
+replace references from one node to another with node IDs.</p>
+<p>An arena is typically a <code>Vec</code> (or similar), and the node IDs are a newtype
+wrapper around a simple integer index.</p>
+<p>Obviously, Rust doesn't check that your node IDs are valid. If you don't have
+proper references, what stops you from having stale IDs?</p>
+<p>Arenas are often purely additive, which means that you can add entries but not
+delete them
+(<a href="https://github.com/Manishearth/elsa/blob/master/examples/mutable_arena.rs">example</a>).
+If you must have an arena which deletes things, then use generational IDs; see
+the <a href="https://docs.rs/generational-arena/">generational-arena</a> crate and this
+<a href="https://www.youtube.com/watch?v=aKLntZcp27M">RustConf keynote</a> for more
+details.</p>
+<p>If arenas still sound like a nasty workaround, consider that you might choose
+an arena anyway for other reasons:</p>
+<ul>
+<li>All of the objects in the arena will be freed at the end of the arena's
+lifetime, instead of during their manipulation, which can give very low
+latency for some use-cases. <a href="https://docs.rs/bumpalo/3.6.1/bumpalo/">Bumpalo</a>
+formalizes this.</li>
+<li>The rest of your program might have real Rust references into the arena. You
+can give the arena a named lifetime (<code>'arena</code> for example), making the
+provenance of those references very clear.</li>
+</ul>
+<h2 id="im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe"><a class="header" href="#im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe">I'm having a miserable time making my data structure. Should I use unsafe?</a></h2>
+<p>Low-level data structures are hard in Rust, especially if they're self-
+referential. Rust will make visible all sorts of risks of ownership and
+shared mutable state which may not be visible in other languages, and
+they're hard to solve in low-level data structure code.</p>
+<p>Even something as simple as a doubly-linked list is notoriously hard; so much so
+that there is a <a href="https://rust-unofficial.github.io/too-many-lists/">book that teaches Rust based solely on linked lists</a>.
+As that (wonderful) book makes clear, you are often faced with a choice:</p>
+<ul>
+<li><a href="https://rust-unofficial.github.io/too-many-lists/fourth.html">Use safe Rust, but shift compile-time checks to runtime</a></li>
+<li><a href="https://rust-unofficial.github.io/too-many-lists/fifth.html">Use <code>unsafe</code></a> and
+take the same degree of care you'd take in C or C++. And, just like in C or C++,
+you'll introduce <a href="https://www.cvedetails.com/vulnerability-list/vendor_id-19029/product_id-48677/Rust-lang-Rust.html">security vulnerabilities in the unsafe code</a>.</li>
+</ul>
+<p>If you're facing this decision... perhaps there's a third way.</p>
+<p>You should almost always be using somebody else's tried-and-tested
+data structure.</p>
+<p><a href="https://docs.rs/petgraph">petgraph</a> and
+<a href="https://docs.rs/slotmap">slotmap</a> are great examples. Use someone else's crate
+by default, and resort to writing your own only if you exhaust that option.</p>
+<p>C++ makes it hard to pull in third-party dependencies, so it's culturally normal
+to write new code. Rust makes it trivial to add dependencies, and so you will
+need to do that, even if it feels surprising for a C++ programmer.</p>
+<p>This ease of adding dependencies co-evolved with the
+difficulty of making data structures. It's simply a part of programming in Rust.
+You just can't separate the language and the ecosystem.</p>
+<p>You might argue that this dependency on third-party crates is concerning
+from a supply-chain security point of view. Your author would agree, but
+it's just the way you do things in Rust. Stop creating your own data structures.</p>
+<p>Then again:</p>
+<blockquote>
+<p>it’s equally miserable to implement performant, low-level data structures in
+C++; you’ll be specializing on lots of things like is_trivially_movable etc. - MY.</p>
+</blockquote>
+<h2 id="i-nevertheless-have-to-write-my-own-data-structure-should-i-use-unsafe"><a class="header" href="#i-nevertheless-have-to-write-my-own-data-structure-should-i-use-unsafe">I nevertheless have to write my own data structure. Should I use unsafe?</a></h2>
+<p>I'm sorry to hear that.</p>
+<p>Some suggestions:</p>
+<ul>
+<li>Use <code>Rc</code>, weak etc. until you really can't.</li>
+<li>Even if you can't use a pre-existing crate for the whole data structure,
+perhaps you can use a crate to avoid the <code>unsafe</code> bits (for example
+<a href="https://docs.rs/rental/latest/rental/">rental</a>)</li>
+<li>Bear in mind that refactoring Rust is generally safer than refactoring
+C++ (because the compiler will point out a higher proportion of your
+mistakes) so a wise strategy might be to start with a fully-safe, but slow,
+version, establish solid tests, and then <a href="https://doc.rust-lang.org/nomicon/">reach for unsafe</a>.</li>
+</ul>
 
                     </main>
 
@@ -359,7 +678,7 @@ compiler helps you to avoid runtime panics.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
-                                                    <a rel="next" href="codebase.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                                    <a rel="next" href="apis.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -373,7 +692,7 @@ compiler helps you to avoid runtime panics.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
-                                    <a rel="next" href="codebase.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                    <a rel="next" href="apis.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                             </nav>

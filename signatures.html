@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html" class="active"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Questions about your APIs</div></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Questions about your processes</div></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html" class="active"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><a href="apis.html"><strong aria-hidden="true">5.</strong> Questions about your APIs</a></li><li class="chapter-item expanded "><a href="codebase.html"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><a href="processes.html"><strong aria-hidden="true">7.</strong> Questions about your processes</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -389,6 +389,167 @@ it should take <code>self</code> by value. Examples:</p>
 <li>Closing a file and returning a result code.</li>
 <li>A builder-pattern object which spits out the thing it was building. (<a href="https://docs.rs/bindgen/0.59.0/bindgen/struct.Builder.html#method.generate">Example</a>).</li>
 </ul>
+<h2 id="how-do-i-take-a-thing-and-a-reference-to-something-within-that-thing"><a class="header" href="#how-do-i-take-a-thing-and-a-reference-to-something-within-that-thing">How do I take a thing, and a reference to something within that thing?</a></h2>
+<p>For example, suppose you want to give all of your dogs to your friend, yet also
+tell your friend which one of the dogs is the Best Boy or Girl.</p>
+<pre><code class="language-cpp">struct PetInformation {
+  std::vector&lt;Dog&gt; dogs;
+  Dog&amp; BestBoy;
+  Dog&amp; BestGirl;
+}
+
+PetInformation GetPetInformation() {
+  // ...
+}
+</code></pre>
+<p>Generally this is an indication that your types or functions are not split down
+in the correct
+way:</p>
+<blockquote>
+<p>This is a decomposition problem. Once you’ve found the correct decomposition, everything
+else just works. The code almost writes itself. - AF</p>
+</blockquote>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">struct Dog;
+</span>struct PetInformation(Vec&lt;Dog&gt;);
+
+fn get_pet_information() -&gt; PetInformation {
+  // ...
+<span class="boring">PetInformation(Vec::new())
+</span>}
+
+fn identify_best_boy(pet_information: &amp;PetInformation) -&gt; &amp;Dog {
+  // ...
+<span class="boring">  pet_information.0.get(0).unwrap()
+</span>}
+<span class="boring">}
+</span></code></pre></pre>
+<p>One use-case is when you want to act on some data, depending on its contents...
+but you also wanted to do something with those contents that you previously
+identified.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">struct Key;
+</span>struct Door { locked: bool }
+
+struct Car {
+  ignition: Option&lt;Key&gt;,
+  door: Door,
+}
+
+fn steal_car(car: Car) {
+  match car {
+    Car {
+      ignition: Some(ref key),
+      door: Door { locked: false }
+    } =&gt; drive_away_normally(car /* , key */),
+    _ =&gt; break_in_and_hotwire(car)
+  }
+}
+
+fn drive_away_normally(car: Car /* , key: &amp;Key */) {
+  // Annoying to have to repeat this code...
+  let key = match car {
+    Car {
+      ignition: Some(ref key),
+      ..
+    } =&gt; key,
+    _ =&gt; unreachable!()
+  };
+  turn_key(key);
+  // ...
+}
+
+<span class="boring">fn turn_key(key: &amp;Key) {}
+</span><span class="boring">fn break_in_and_hotwire(car: Car) {}
+</span><span class="boring">}
+</span></code></pre></pre>
+<p>If this repeated matching gets annoying, it's relatively easy
+to extract it to a function.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">fn turn_key(key: &amp;Key) {}
+</span><span class="boring">fn break_in_and_hotwire(car: Car) {}
+</span><span class="boring">struct Key;
+</span><span class="boring">struct Door { locked: bool }
+</span><span class="boring">struct Car {
+</span><span class="boring">  ignition: Option&lt;Key&gt;,
+</span><span class="boring">  door: Door,
+</span><span class="boring">}
+</span>
+impl Car {
+  fn get_usable_key(&amp;self) -&gt; Option&lt;&amp;Key&gt; {
+    match self {
+      Car {
+        ignition: Some(ref key),
+        door: Door { locked: false }
+      } =&gt; Some(key),
+      _ =&gt; None,
+    }
+  }
+}
+
+fn steal_car(car: Car) {
+  match car.get_usable_key() {
+    None =&gt; break_in_and_hotwire(car),
+    Some(_) =&gt; drive_away_normally(car),
+  }
+}
+
+fn drive_away_normally(car: Car) {
+  turn_key(car.get_usable_key().unwrap());
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h2 id="when-should-i-return-impl-trait"><a class="header" href="#when-should-i-return-impl-trait">When should I return <code>impl Trait</code>?</a></h2>
+<p>Your main consideration should be API stability. If your caller doesn't
+<em>need</em> to know the concrete implementation type, then don't tell it. That
+gives you flexibility to change your implementation in future without breaking
+compatibility.</p>
+<p>Note <a href="https://www.hyrumslaw.com/">Hyrum's Law</a>!</p>
+<p>Using <code>impl Trait</code> doesn't solve <em>all</em> possible API stability concerns, because
+even <code>impl Trait</code> leaks auto-traits such as <code>Send</code> and <code>Sync</code>.</p>
+<h2 id="i-miss-function-overloading-what-do-i-do"><a class="header" href="#i-miss-function-overloading-what-do-i-do">I miss function overloading! What do I do?</a></h2>
+<p>Use a trait to implement the behavior you used to have.</p>
+<p>For example, in C++:</p>
+<pre><code class="language-cpp">class Dog {
+public:
+  void eat(Dogfood);
+  void eat(DeliveryPerson);
+};
+</code></pre>
+<p>In Rust you might express this as:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Edible {
+};
+
+struct Dog;
+
+impl Dog {
+  fn eat(edible: impl Edible) {
+    // ...
+  }
+}
+
+struct Dogfood;
+struct DeliveryPerson;
+
+impl Edible for Dogfood {}
+impl Edible for DeliveryPerson {}
+<span class="boring">}
+</span></code></pre></pre>
+<p>This gives your caller all the convenience they want, though may increase
+work for you as the implementer.</p>
+<h2 id="i-miss-operator-overloading-what-do-i-do"><a class="header" href="#i-miss-operator-overloading-what-do-i-do">I miss operator overloading! What do I do?</a></h2>
+<p>Implement the standard traits instead (for example <code>PartialEq</code>, <code>Add</code>). This
+has equivalent effect in that folks will be able to use your type in a standard
+Rusty way without knowing too much special about your type.</p>
 <h2 id="should-i-return-an-error-or-panic"><a class="header" href="#should-i-return-an-error-or-panic">Should I return an error, or panic?</a></h2>
 <p>Panics should be used only for invariants, never for anything that you believe
 might happen. That's especially true <a href="https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell">for libraries</a></p>

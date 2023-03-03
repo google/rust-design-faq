@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Questions about your APIs</div></li><li class="chapter-item expanded "><a href="codebase.html" class="active"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Questions about your processes</div></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="code.html"><strong aria-hidden="true">2.</strong> Questions about code in function bodies</a></li><li class="chapter-item expanded "><a href="signatures.html"><strong aria-hidden="true">3.</strong> Questions about your function signatures</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">4.</strong> Questions about your types</a></li><li class="chapter-item expanded "><a href="apis.html"><strong aria-hidden="true">5.</strong> Questions about your APIs</a></li><li class="chapter-item expanded "><a href="codebase.html" class="active"><strong aria-hidden="true">6.</strong> Questions about your whole codebase</a></li><li class="chapter-item expanded "><a href="processes.html"><strong aria-hidden="true">7.</strong> Questions about your processes</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -308,34 +308,6 @@ impl Drop for SharedMutableGoatLock {
 <li>All of the objects in the arena will be freed at the end of the arena's lifetime, instead of during their manipulation, which can give very low latency for some use-cases. <a href="https://docs.rs/bumpalo/3.6.1/bumpalo/">Bumpalo</a> formalizes this.</li>
 <li>The rest of your program might have real Rust references into the arena. You can give the arena a named lifetime (<code>'arena</code> for example), making the provenance of those references very clear.</li>
 </ul>
-<h2 id="im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe"><a class="header" href="#im-having-a-miserable-time-making-my-data-structure-should-i-use-unsafe">I'm having a miserable time making my data structure. Should I use unsafe?</a></h2>
-<p>Low-level data structures are <em>hard</em> in Rust. Arguably, Rust merely makes plain
-all the lifetime and ownership issues which you already had in other languages, but
-the compiler is brutal about it, and you're going to have a bad day.</p>
-<p>Even something as simple as a doubly-linked list is notoriously hard; so much so
-that there is a <a href="https://rust-unofficial.github.io/too-many-lists/">book that teaches Rust based solely on linked lists</a>.
-As that (wonderful) book makes clear, you are often faced with a choice:</p>
-<ul>
-<li><a href="https://rust-unofficial.github.io/too-many-lists/fourth.html">Use safe Rust, but shift compile-time checks to runtime</a></li>
-<li><a href="https://rust-unofficial.github.io/too-many-lists/fifth.html">Use <code>unsafe</code></a> and
-take the same degree of care you'd take in C or C++. And, just like in C or C++,
-you'll introduce <a href="https://www.cvedetails.com/vulnerability-list/vendor_id-19029/product_id-48677/Rust-lang-Rust.html">security vulnerabilities in the unsafe code</a>.</li>
-</ul>
-<p>If you're facing this decision... perhaps there's a third way.</p>
-<p>You should almost always be using somebody else's tried-and-tested
-data structure.</p>
-<p><a href="https://docs.rs/petgraph">petgraph</a> and
-<a href="https://docs.rs/slotmap">slotmap</a> are great examples. Use someone else's crate
-by default, and resort to writing your own only if you exhaust that option.</p>
-<p>C++ makes it hard to pull in third-party dependencies, so it's culturally normal
-to write new code. Rust makes it trivial to add dependencies, and so you will
-need to do that, even if it feels awkward for a C++ programmer.</p>
-<p>This <em>ease</em> of adding dependencies <strong>co-evolved</strong> with the
-<em>difficulty</em> of making data structures. It's simply a part of programming in Rust.
-You just can't separate the language and the ecosystem.</p>
-<p>You might argue that this dependency on third-party crates is concerning
-from a supply-chain security point of view. Your author would agree, but
-it's just the way you do things in Rust. Stop creating your own data structures.</p>
 <h2 id="should-i-have-a-few-big-crates-or-lots-of-small-ones"><a class="header" href="#should-i-have-a-few-big-crates-or-lots-of-small-ones">Should I have a few big crates or lots of small ones?</a></h2>
 <p>In the past, it was recommended to have small crates to get optimal build time.
 Incremental builds generally make this unnecessary now. You should arrange your
@@ -410,15 +382,27 @@ safe Rust code.</p>
 interoperability offered by <code>cxx</code> with the automatic generation offered by
 <code>bindgen</code>. It's not clear whether this is even <em>possible</em> but <a href="https://github.com/google/autocxx">several</a>
 <a href="https://github.com/google/mosaic">projects</a> are aiming in this direction.</p>
+<h2 id="im-getting-a-lot-of-binary-bloat"><a class="header" href="#im-getting-a-lot-of-binary-bloat">I'm getting a lot of binary bloat.</a></h2>
+<p>In Rust you have a free choice between <code>impl Trait</code> and <code>dyn Trait</code>. See
+<a href="signatures.html#When_should_I_take_or_return_dyn_Trait">this answer</a>, too. <code>impl Trait</code> tends
+to be the default, and results in large binaries as much code can be duplicated.
+If you have this problem, consider using <code>dyn Trait</code>. Other options include
+the 'thin template pattern' (an example is <code>serde_json</code> where the code to read
+from <a href="https://github.com/serde-rs/json/blob/master/src/read.rs#L172">a string and a slice</a>
+would be duplicated entirely, but instead one delegates to the other and
+requests slightly different behavior.)</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="types.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="apis.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
+                                                    <a rel="next" href="processes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -426,10 +410,13 @@ interoperability offered by <code>cxx</code> with the automatic generation offer
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="types.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="apis.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
+                                    <a rel="next" href="processes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                             </nav>
 
         </div>
