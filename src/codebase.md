@@ -297,7 +297,7 @@ interoperability offered by `cxx` with the automatic generation offered by
 ## I'm getting a lot of binary bloat.
 
 In Rust you have a free choice between `impl Trait` and `dyn Trait`. See
-[signatures.md#When_should_I_take_or_return_dyn_Trait]. `impl Trait` tends
+[this answer](signatures.md#When_should_I_take_or_return_dyn_Trait), too. `impl Trait` tends
 to be the default, and results in large binaries as much code can be duplicated.
 If you have this problem, consider using `dyn Trait`. Other options include
 the 'thin template pattern' (an example is `serde_json` where the code to read

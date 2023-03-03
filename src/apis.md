@@ -143,7 +143,7 @@ The [official guidelines say to be eager](https://rust-lang.github.io/api-guidel
 But don't overpromise:
 
 > Equality can suddenly become expensive later - don’t make types comparable
-> unless you intend people to be able to [compare instances of the type].
+> unless you intend people to be able to compare instances of the type.
 > Allowing people to pattern match on enums is usually better. - MY
 
 Note that [`syn` is a rare case](https://docs.rs/syn/latest/syn/) in that it
