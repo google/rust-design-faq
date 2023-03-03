@@ -277,7 +277,7 @@ impl Drop for SharedMutableGoatLock {
 </ul>
 <p>There can be a third option if you're using async Rust. If the data isn't available, you may be able to return to your event loop using an async version of the lock (<a href="https://docs.rs/tokio/1.5.0/tokio/sync/struct.RwLock.html#method.read">Tokio example</a>, <a href="https://docs.rs/async-std/1.9.0/async_std/sync/struct.RwLock.html">async_std example</a>).</p>
 <h2 id="how-do-i-do-a-singleton"><a class="header" href="#how-do-i-do-a-singleton">How do I do a singleton?</a></h2>
-<p>Use <a href="https://docs.rs/once_cell/1.7.2/once_cell/">OnceCell</a> for now. <a href="https://doc.rust-lang.org/std/lazy/struct.Lazy.html">This should arrive in the standard library</a> in future.</p>
+<p>Use <a href="https://doc.rust-lang.org/std/cell/struct.OnceCell.html">OnceCell</a>.</p>
 <h2 id="whats-the-best-way-to-retrofit-rusts-parallelism-benefits-to-an-existing-codebase"><a class="header" href="#whats-the-best-way-to-retrofit-rusts-parallelism-benefits-to-an-existing-codebase">What's the best way to retrofit Rust's parallelism benefits to an existing codebase?</a></h2>
 <p>When parallelizing an existing codebase, first check that all existing types are correctly <a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a> and <a href="https://doc.rust-lang.org/std/marker/trait.Sync.html"><code>Sync</code></a>. Generally, though, you should try to avoid implementing these yourself - instead use pre-existing wrapper types which enforce the correct contract (for example, <a href="https://doc.rust-lang.org/std/sync/struct.RwLock.html"><code>RwLock</code></a>).</p>
 <p>After that:</p>
