@@ -162,7 +162,7 @@ There can be a third option if you're using async Rust. If the data isn't availa
 
 ## How do I do a singleton?
 
-Use [OnceCell](https://docs.rs/once_cell/1.7.2/once_cell/) for now. [This should arrive in the standard library](https://doc.rust-lang.org/std/lazy/struct.Lazy.html) in future.
+Use [OnceCell](https://doc.rust-lang.org/std/cell/struct.OnceCell.html).
 
 ## What's the best way to retrofit Rust's parallelism benefits to an existing codebase?
 
