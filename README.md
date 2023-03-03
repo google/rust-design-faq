@@ -1,3 +1,5 @@
+***This FAQ can be found at [https://cppfaq.rs](cppfaq.rs).***
+
 Build instructions:
 * `cargo install mdbook`
 * `cargo install mdbook-mermaid`
