@@ -312,7 +312,7 @@ logic bugs later](code.md#When-should-I-use-runtime-checks-vs-jumping-through-ho
 
 ## How else can I use Rust's type system to avoid high-level logic bugs?
 
-Yes.
+Lots of ways:
 
 ### Zero-sized types.
 
